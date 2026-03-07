@@ -15,6 +15,8 @@ interface NotesState {
     isSaving: boolean
     deleteConfirmId: string | null
     isSidebarOpen: boolean
+    sortBy: 'title' | 'createdAt' | 'updatedAt'
+    sortOrder: 'asc' | 'desc'
 }
 
 type Action =
@@ -40,6 +42,8 @@ type Action =
     | { type: 'ADD_LABEL'; label: Label }
     | { type: 'UPDATE_LABEL'; label: Label }
     | { type: 'REMOVE_LABEL'; id: string }
+    | { type: 'SET_SORT_BY'; sortBy: 'title' | 'createdAt' | 'updatedAt' }
+    | { type: 'SET_SORT_ORDER'; sortOrder: 'asc' | 'desc' }
 
 function notesReducer(state: NotesState, action: Action): NotesState {
     switch (action.type) {
@@ -156,6 +160,10 @@ function notesReducer(state: NotesState, action: Action): NotesState {
                 selectedLabelId: state.selectedLabelId === action.id ? null : state.selectedLabelId,
                 notes: state.notes.map(n => n.labelId === action.id ? { ...n, labelId: undefined } : n)
             }
+        case 'SET_SORT_BY':
+            return { ...state, sortBy: action.sortBy }
+        case 'SET_SORT_ORDER':
+            return { ...state, sortOrder: action.sortOrder }
         default:
             return state
     }
@@ -185,7 +193,9 @@ const initialState: NotesState = {
     isLoading: true,
     isSaving: false,
     deleteConfirmId: null,
-    isSidebarOpen: true
+    isSidebarOpen: true,
+    sortBy: 'updatedAt',
+    sortOrder: 'desc'
 }
 
 interface NotesContextValue {
@@ -211,11 +221,13 @@ interface NotesContextValue {
     toggleSidebar: () => void
     setDeleteConfirm: (id: string | null) => void
     openFolder: () => void
+    setSortBy: (sortBy: 'title' | 'createdAt' | 'updatedAt') => void
+    setSortOrder: (sortOrder: 'asc' | 'desc') => void
     createLabel: (name: string, color: string) => Promise<void>
     updateLabel: (id: string, name: string, color: string) => Promise<void>
     deleteLabel: (id: string) => Promise<void>
     updateNoteLabel: (id: string, labelId: string | undefined) => Promise<void>
-    openNoteByTitle: (title: string) => Promise<void>
+    openNoteByTitle: (title: string, inNewWindow?: boolean) => Promise<void>
 }
 
 const NotesContext = createContext<NotesContextValue | null>(null)
@@ -249,8 +261,7 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         loadNotes().then(() => {
-            const params = new URLSearchParams(window.location.search)
-            const id = params.get('id')
+            const id = window.electronAPI.windowArgs.noteId
             if (id) {
                 dispatch({ type: 'SET_ACTIVE', id })
             }
@@ -312,16 +323,28 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
         }
     }, [state.notes, state.labels])
 
-    const openNoteByTitle = useCallback(async (title: string) => {
-        const cleanTitle = title.trim()
-        const existingNote = state.notes.find(n => n.title.toLowerCase() === cleanTitle.toLowerCase())
+    const openNoteByTitle = useCallback(async (ref: string, inNewWindow = false) => {
+        const cleanRef = ref.trim()
+
+        // Try to find by ID first
+        let existingNote = state.notes.find(n => n.id === cleanRef)
+
+        // Fallback to finding by Title
+        if (!existingNote) {
+            existingNote = state.notes.find(n => n.title.toLowerCase() === cleanRef.toLowerCase())
+        }
 
         if (existingNote) {
-            dispatch({ type: 'SET_ACTIVE', id: existingNote.id })
+            if (inNewWindow) {
+                window.electronAPI.openInNewWindow(existingNote.id)
+            } else {
+                dispatch({ type: 'SET_ACTIVE', id: existingNote.id })
+            }
             return
         }
 
-        // Note doesn't exist, create it
+        // Note doesn't exist, create it (treat as title)
+        const cleanTitle = cleanRef
         const result = await window.electronAPI.createNote()
         const content = `# ${cleanTitle}\n\n`
         await window.electronAPI.writeNote(result.id, content)
@@ -339,6 +362,10 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             tags: []
         }
         dispatch({ type: 'ADD_NOTE', note })
+
+        if (inNewWindow) {
+            window.electronAPI.openInNewWindow(result.id)
+        }
     }, [state.notes])
 
     const updateNote = useCallback((id: string, content: string) => {
@@ -438,23 +465,50 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: 'SET_SELECTED_TAG', tag })
     }, [])
 
+    const setSortBy = useCallback((sortBy: 'title' | 'createdAt' | 'updatedAt') => {
+        dispatch({ type: 'SET_SORT_BY', sortBy })
+    }, [])
+
+    const setSortOrder = useCallback((sortOrder: 'asc' | 'desc') => {
+        dispatch({ type: 'SET_SORT_ORDER', sortOrder })
+    }, [])
+
     const activeNote = state.notes.find(n => n.id === state.activeNoteId)
 
-    const filteredNotes = state.notes.filter(note => {
-        const matchesLabel = state.selectedLabelId ? note.labelId === state.selectedLabelId : true
-        const matchesTag = state.selectedTag ? note.tags?.includes(state.selectedTag) : true
-        const matchesFilter = state.filterMode === 'all' || note.starred
-        const matchesSearch = state.searchQuery === '' ||
-            note.title.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
-            note.content.toLowerCase().includes(state.searchQuery.toLowerCase())
-        return matchesLabel && matchesTag && matchesFilter && matchesSearch
-    })
+    const sortedNotes = React.useMemo(() => {
+        const filtered = state.notes.filter(note => {
+            const matchesLabel = state.selectedLabelId ? note.labelId === state.selectedLabelId : true
+            const matchesTag = state.selectedTag ? note.tags?.includes(state.selectedTag) : true
+            const matchesFilter = state.filterMode === 'all' || note.starred
+            const matchesSearch = state.searchQuery === '' ||
+                note.title.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
+                note.content.toLowerCase().includes(state.searchQuery.toLowerCase())
+            return matchesLabel && matchesTag && matchesFilter && matchesSearch
+        })
+
+        return [...filtered].sort((a, b) => {
+            // Keep pinned notes at top
+            if (a.pinned && !b.pinned) return -1
+            if (!a.pinned && b.pinned) return 1
+
+            let comparison = 0
+            if (state.sortBy === 'title') {
+                comparison = a.title.localeCompare(b.title)
+            } else if (state.sortBy === 'createdAt') {
+                comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+            } else {
+                comparison = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
+            }
+
+            return state.sortOrder === 'desc' ? -comparison : comparison
+        })
+    }, [state.notes, state.selectedLabelId, state.selectedTag, state.filterMode, state.searchQuery, state.sortBy, state.sortOrder])
 
     return (
         <NotesContext.Provider value={{
             state,
             activeNote,
-            filteredNotes,
+            filteredNotes: sortedNotes,
             loadNotes,
             createNote,
             openDailyNote,
@@ -474,6 +528,8 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             toggleSidebar,
             setDeleteConfirm,
             openFolder,
+            setSortBy,
+            setSortOrder,
             createLabel,
             updateLabel,
             deleteLabel,

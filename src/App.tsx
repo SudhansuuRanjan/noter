@@ -39,7 +39,9 @@ function SecondaryLayout() {
 
 function AppLayout() {
     const { state, activeNote } = useNotes()
-    const mode = new URLSearchParams(window.location.search).get('mode')
+
+    // Robust detection for Electron/Vite
+    const mode = window.electronAPI.windowArgs.mode
 
     if (mode === 'secondary') {
         return <SecondaryLayout />
@@ -49,27 +51,43 @@ function AppLayout() {
         <div className="flex h-screen w-screen overflow-hidden bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans">
             <PanelGroup direction="horizontal">
                 {state.isSidebarOpen && (
-                    <Panel defaultSize={25} minSize={15} maxSize={40} className="border-r border-zinc-200 dark:border-zinc-800/60 z-10">
+                    <Panel
+                        defaultSize={25}
+                        minSize={15}
+                        maxSize={40}
+                        order={1}
+                        id="sidebar-panel"
+                        key="sidebar"
+                        className="border-r border-zinc-200 dark:border-zinc-800/60 z-10"
+                    >
                         <Sidebar />
                     </Panel>
                 )}
                 {state.isSidebarOpen && (
-                    <PanelResizeHandle className="w-px bg-zinc-200 dark:bg-zinc-800 hover:bg-indigo-400 dark:hover:bg-indigo-500 hover:w-1 transition-all z-20 cursor-col-resize" />
+                    <PanelResizeHandle
+                        key="sidebar-resizer"
+                        className="w-px bg-zinc-200 dark:bg-zinc-800 hover:bg-indigo-400 dark:hover:bg-indigo-500 hover:w-1 transition-all z-20 cursor-col-resize"
+                    />
                 )}
 
                 {/* Main content */}
-                <Panel className="flex flex-col min-w-0 h-full overflow-hidden bg-white dark:bg-zinc-950">
+                <Panel
+                    order={2}
+                    id="main-panel"
+                    key="main"
+                    className="flex flex-col min-w-0 h-full overflow-hidden bg-white dark:bg-zinc-950"
+                >
                     {activeNote ? (
-                        <div className="flex flex-col h-full overflow-hidden relative">
+                        <div className="flex flex-col h-full relative">
                             <Toolbar />
                             <div className="flex-1 min-h-0 relative">
                                 {state.viewMode === 'split' ? (
                                     <PanelGroup direction="horizontal">
-                                        <Panel defaultSize={50} minSize={20} className="h-full">
+                                        <Panel defaultSize={50} minSize={20} order={1} className="h-full">
                                             <Editor />
                                         </Panel>
                                         <PanelResizeHandle className="w-1 bg-zinc-100 dark:bg-zinc-900 hover:bg-indigo-400 dark:hover:bg-indigo-500 transition-colors z-20 cursor-col-resize" />
-                                        <Panel defaultSize={50} minSize={20} className="h-full">
+                                        <Panel defaultSize={50} minSize={20} order={2} className="h-full">
                                             <Preview />
                                         </Panel>
                                     </PanelGroup>

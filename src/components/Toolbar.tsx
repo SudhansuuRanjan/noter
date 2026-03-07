@@ -31,7 +31,7 @@ export function Toolbar() {
     if (!activeNote) return null
 
     return (
-        <div className={`h-11 flex-shrink-0 flex items-center justify-between pr-4 border-b border-zinc-200 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-900/40 backdrop-blur-sm transition-all duration-200 ${!state.isSidebarOpen ? 'pl-20' : 'pl-4'}`} style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
+        <div className={`h-11 flex-shrink-0 flex items-center justify-between pr-4 border-b border-zinc-200 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-900/40 backdrop-blur-sm transition-all duration-200 relative z-30 ${!state.isSidebarOpen ? 'pl-20' : 'pl-4'}`} style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
             {/* Left: Note title + save indicator */}
             <div className="flex items-center gap-3 min-w-0" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
                 <button

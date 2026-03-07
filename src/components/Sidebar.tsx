@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Search, Plus, Star, FileText, FolderOpen, Tag, X, ChevronRight, ChevronDown, Edit2, Check, Calendar, HelpCircle } from 'lucide-react'
+import { Search, Plus, Star, FileText, FolderOpen, Tag, X, ChevronRight, ChevronDown, Edit2, Check, Calendar, HelpCircle, ArrowUpDown, SortAsc, SortDesc } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
 import { NoteCard } from './NoteCard'
 import { ThemeToggle } from './ThemeToggle'
@@ -19,7 +19,9 @@ export function Sidebar() {
         createLabel,
         updateLabel,
         deleteLabel,
-        setSelectedTag
+        setSelectedTag,
+        setSortBy,
+        setSortOrder
     } = useNotes()
 
     const [isLabelsExpanded, setIsLabelsExpanded] = useState(false)
@@ -130,24 +132,46 @@ export function Sidebar() {
                 </div>
             </div>
 
-            {/* Filter tabs */}
-            <div className="px-4 mb-3 flex gap-1">
-                {(['all', 'starred'] as const).map(f => (
-                    <button
-                        key={f}
-                        onClick={() => setFilter(f)}
-                        className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${state.filterMode === f
-                            ? 'bg-indigo-100 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30'
-                            : 'text-zinc-500 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/50'
-                            }`}
+            {/* Filter tabs + Sort */}
+            <div className="px-4 mb-3 flex items-center justify-between">
+                <div className="flex gap-1">
+                    {(['all', 'starred'] as const).map(f => (
+                        <button
+                            key={f}
+                            onClick={() => setFilter(f)}
+                            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${state.filterMode === f
+                                ? 'bg-indigo-100 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30'
+                                : 'text-zinc-500 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/50'
+                                }`}
+                        >
+                            {f === 'starred' && <Star size={11} className={state.filterMode === 'starred' ? 'fill-amber-500 text-amber-500' : ''} />}
+                            {f === 'all' ? 'All' : 'Starred'}
+                            {f === 'all' && (
+                                <span className="ml-1 text-xs text-zinc-400 dark:text-zinc-600">{state.notes.length}</span>
+                            )}
+                        </button>
+                    ))}
+                </div>
+
+                <div className="flex items-center gap-1">
+                    <select
+                        value={state.sortBy}
+                        onChange={(e) => setSortBy(e.target.value as any)}
+                        className="bg-transparent text-[11px] text-zinc-500 dark:text-zinc-400 border-none outline-none cursor-pointer hover:text-indigo-500 transition-colors"
+                        title="Sort by"
                     >
-                        {f === 'starred' && <Star size={11} className={state.filterMode === 'starred' ? 'fill-amber-500 text-amber-500' : ''} />}
-                        {f === 'all' ? 'All' : 'Starred'}
-                        {f === 'all' && (
-                            <span className="ml-1 text-xs text-zinc-400 dark:text-zinc-600">{state.notes.length}</span>
-                        )}
+                        <option value="updatedAt">Date Updated</option>
+                        <option value="createdAt">Date Created</option>
+                        <option value="title">Name</option>
+                    </select>
+                    <button
+                        onClick={() => setSortOrder(state.sortOrder === 'asc' ? 'desc' : 'asc')}
+                        className="p-1.5 rounded-lg text-zinc-400 hover:text-indigo-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
+                        title={`Sort ${state.sortOrder === 'asc' ? 'Ascending' : 'Descending'}`}
+                    >
+                        {state.sortOrder === 'asc' ? <SortAsc size={13} /> : <SortDesc size={13} />}
                     </button>
-                ))}
+                </div>
             </div>
 
             {/* Labels Section */}

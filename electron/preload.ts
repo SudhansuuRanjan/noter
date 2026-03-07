@@ -38,6 +38,18 @@ export interface ElectronAPI {
     getHistory: (id: string) => Promise<{ timestamp: number, preview: string, path: string }[]>
     getRevision: (path: string) => Promise<string | null>
     openInNewWindow: (id: string) => Promise<void>
+    windowArgs: { mode: string; noteId?: string }
+}
+
+const getWindowArgs = () => {
+    const args = process.argv
+    const modeArg = args.find(arg => arg.startsWith('--window-mode='))
+    const idArg = args.find(arg => arg.startsWith('--note-id='))
+
+    return {
+        mode: modeArg ? modeArg.split('=')[1] : 'main',
+        noteId: idArg ? idArg.split('=')[1] : undefined
+    }
 }
 
 const api: ElectronAPI = {
@@ -59,7 +71,8 @@ const api: ElectronAPI = {
     saveAttachment: (buffer: ArrayBuffer, filename: string) => ipcRenderer.invoke('attachments:save', buffer, filename),
     getHistory: (id: string) => ipcRenderer.invoke('notes:getHistory', id),
     getRevision: (path: string) => ipcRenderer.invoke('notes:getRevision', path),
-    openInNewWindow: (id: string) => ipcRenderer.invoke('notes:openInNewWindow', id)
+    openInNewWindow: (id: string) => ipcRenderer.invoke('notes:openInNewWindow', id),
+    windowArgs: getWindowArgs()
 }
 
 contextBridge.exposeInMainWorld('electronAPI', api)

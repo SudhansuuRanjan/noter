@@ -41,14 +41,14 @@ export function Preview() {
                             ),
                             a: ({ href, children, ...props }) => {
                                 if (href?.startsWith('noteref://')) {
-                                    const title = decodeURIComponent(href.replace('noteref://', ''))
+                                    const targetId = decodeURIComponent(href.replace('noteref://', ''))
                                     return (
                                         <span
                                             role="link"
                                             onClick={(e) => {
                                                 e.preventDefault()
                                                 e.stopPropagation()
-                                                if (title) openNoteByTitle(title)
+                                                if (targetId) openNoteByTitle(targetId, true)
                                             }}
                                             className="text-indigo-600 dark:text-indigo-400 no-underline hover:underline cursor-pointer border-b border-indigo-200 dark:border-indigo-900/50 pb-0.5"
                                         >
@@ -60,7 +60,10 @@ export function Preview() {
                             }
                         }}
                     >
-                        {activeNote.content.replace(/\[\[(.*?)\]\]/g, (_, title) => `[${title}](noteref://${encodeURIComponent(title)})`)}
+                        {activeNote.content.replace(/\[\[(.*?)\]\](?:\("(.*?)"\))?/g, (_, label, id) => {
+                            const target = id || label
+                            return `[${label}](noteref://${encodeURIComponent(target)})`
+                        })}
                     </ReactMarkdown>
                 </div>
             </div>

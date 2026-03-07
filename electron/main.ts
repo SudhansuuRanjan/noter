@@ -67,28 +67,32 @@ function createWindow(noteId?: string): void {
             sandbox: false,
             contextIsolation: true,
             nodeIntegration: false,
-            webSecurity: true
+            webSecurity: true,
+            additionalArguments: isSecondary ? [
+                `--window-mode=secondary`,
+                `--note-id=${noteId}`
+            ] : [`--window-mode=main`]
         },
         show: false
+    })
+
+    win.webContents.setWindowOpenHandler(({ url }) => {
+        if (url.startsWith('http') || url.startsWith('https')) {
+            shell.openExternal(url)
+            return { action: 'deny' }
+        }
+        return { action: 'allow' }
     })
 
     win.once('ready-to-show', () => {
         win.show()
     })
 
-    let url = process.env['ELECTRON_RENDERER_URL']
+    const url = process.env['ELECTRON_RENDERER_URL']
     if (url) {
-        if (isSecondary) {
-            url += `?mode=secondary&id=${noteId}`
-        }
         win.loadURL(url)
     } else {
-        const filePath = join(__dirname, '../renderer/index.html')
-        if (isSecondary) {
-            win.loadFile(filePath, { query: { mode: 'secondary', id: noteId! } })
-        } else {
-            win.loadFile(filePath)
-        }
+        win.loadFile(join(__dirname, '../renderer/index.html'))
     }
 }
 

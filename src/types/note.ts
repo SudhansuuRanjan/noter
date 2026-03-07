@@ -41,6 +41,7 @@ export interface ElectronAPI {
     getHistory: (id: string) => Promise<{ timestamp: number, preview: string, path: string }[]>
     getRevision: (path: string) => Promise<string | null>
     openInNewWindow: (id: string) => Promise<void>
+    windowArgs: { mode: string; noteId?: string }
 }
 
 declare global {
