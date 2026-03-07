@@ -185,8 +185,18 @@ ipcMain.handle('notes:write', (_event, { id, content }: { id: string; content: s
         if (existingContent !== content) {
             const noteHistoryDir = join(HISTORY_DIR, id)
             if (!existsSync(noteHistoryDir)) mkdirSync(noteHistoryDir, { recursive: true })
-            const backupPath = join(noteHistoryDir, `${Date.now()}.md`)
-            writeFileSync(backupPath, existingContent, 'utf-8')
+
+            // Optimization: Only backup if last backup was > 60s ago
+            const historyFiles = readdirSync(noteHistoryDir).filter(f => f.endsWith('.md'))
+            const lastBackupTime = historyFiles.length > 0
+                ? Math.max(...historyFiles.map(f => Number(f.replace('.md', ''))))
+                : 0
+
+            const nowTime = Date.now()
+            if (nowTime - lastBackupTime > 60000) {
+                const backupPath = join(noteHistoryDir, `${nowTime}.md`)
+                writeFileSync(backupPath, existingContent, 'utf-8')
+            }
         }
     }
 

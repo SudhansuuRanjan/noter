@@ -7,7 +7,9 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps",
+    "build:win": "npm run build && electron-builder --win",
+    "build:mac": "electron-vite build && electron-builder --mac"
   },
   "keywords": [],
   "author": "",
@@ -43,19 +45,5 @@
     "rehype-highlight": "^7.0.0",
     "remark-gfm": "^4.0.0",
     "uuid": "^9.0.1"
-  },
-  "build": {
-    "appId": "com.noter.app",
-    "productName": "Noter",
-    "directories": {
-      "output": "release"
-    },
-    "files": [
-      "dist/**/*",
-      "dist-electron/**/*"
-    ],
-    "mac": {
-      "category": "public.app-category.productivity"
-    }
   }
 }

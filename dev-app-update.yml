@@ -1,0 +1,3 @@
+provider: generic
+url: http://10.75.144.227/auto-updates
+updaterCacheDirName: testexpert-updater
