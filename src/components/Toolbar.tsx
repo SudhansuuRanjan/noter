@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Edit2, Eye, Columns, Download, Trash2, Star, Save, Tag, Pin, History as HistoryIcon, PanelLeft, ExternalLink } from 'lucide-react'
+import { Edit2, Eye, Columns, Download, Trash2, Star, Save, Tag, Pin, History as HistoryIcon, PanelLeft, ExternalLink, Sparkles } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
 import { ViewMode } from '../types/note'
 import { HistoryModal } from './HistoryModal'
+import { AICommand } from './AICommand'
 
 const viewModes: { mode: ViewMode; icon: React.ReactNode; label: string }[] = [
     { mode: 'edit', icon: <Edit2 size={14} />, label: 'Edit' },
@@ -14,6 +15,7 @@ export function Toolbar() {
     const { state, activeNote, setViewMode, toggleStar, togglePin, exportNote, setDeleteConfirm, updateNoteLabel, toggleSidebar } = useNotes()
     const [isLabelMenuOpen, setIsLabelMenuOpen] = useState(false)
     const [showHistory, setShowHistory] = useState(false)
+    const [isAICommandOpen, setIsAICommandOpen] = useState(false)
     const labelMenuRef = useRef<HTMLDivElement>(null)
 
     const activeLabel = activeNote?.labelId ? state.labels.find(l => l.id === activeNote.labelId) : null
@@ -157,6 +159,16 @@ export function Toolbar() {
                     <ExternalLink size={15} />
                 </button>
 
+                {(state.viewMode === 'edit' || state.viewMode === 'split') && (
+                    <button
+                        onClick={() => setIsAICommandOpen(true)}
+                        className="p-2 rounded-lg text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all duration-200"
+                        title="AI Assistant"
+                    >
+                        <Sparkles size={15} />
+                    </button>
+                )}
+
                 <button
                     onClick={() => setShowHistory(true)}
                     className="p-2 rounded-lg text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all duration-200"
@@ -179,6 +191,11 @@ export function Toolbar() {
             {showHistory && (
                 <HistoryModal note={activeNote} onClose={() => setShowHistory(false)} />
             )}
+
+            <AICommand
+                isOpen={isAICommandOpen}
+                onClose={() => setIsAICommandOpen(false)}
+            />
         </div>
     )
 }

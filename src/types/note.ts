@@ -41,6 +41,10 @@ export interface ElectronAPI {
     getHistory: (id: string) => Promise<{ timestamp: number, preview: string, path: string }[]>
     getRevision: (path: string) => Promise<string | null>
     openInNewWindow: (id: string) => Promise<void>
+    saveKey: (key: string) => Promise<boolean>
+    hasKey: () => Promise<boolean>
+    aiChat: (options: { messages: any[], systemPrompt?: string, model?: string }) =>
+        Promise<{ content?: string; usage?: any; error?: string }>
     windowArgs: { mode: string; noteId?: string }
 }
 

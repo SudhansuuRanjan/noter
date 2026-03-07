@@ -38,6 +38,10 @@ export interface ElectronAPI {
     getHistory: (id: string) => Promise<{ timestamp: number, preview: string, path: string }[]>
     getRevision: (path: string) => Promise<string | null>
     openInNewWindow: (id: string) => Promise<void>
+    saveKey: (key: string) => Promise<boolean>
+    hasKey: () => Promise<boolean>
+    aiChat: (options: { messages: any[], systemPrompt?: string, model?: string }) =>
+        Promise<{ content?: string; usage?: any; error?: string }>
     windowArgs: { mode: string; noteId?: string }
 }
 
@@ -72,6 +76,10 @@ const api: ElectronAPI = {
     getHistory: (id: string) => ipcRenderer.invoke('notes:getHistory', id),
     getRevision: (path: string) => ipcRenderer.invoke('notes:getRevision', path),
     openInNewWindow: (id: string) => ipcRenderer.invoke('notes:openInNewWindow', id),
+    saveKey: (key: string) => ipcRenderer.invoke('settings:saveKey', key),
+    hasKey: () => ipcRenderer.invoke('settings:hasKey'),
+    aiChat: (options: { messages: any[], systemPrompt?: string, model?: string }) =>
+        ipcRenderer.invoke('ai:chat', options),
     windowArgs: getWindowArgs()
 }
 

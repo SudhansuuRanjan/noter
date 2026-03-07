@@ -9,6 +9,7 @@ const META_FILE = join(NOTES_DIR, '.meta.json')
 const LABELS_FILE = join(NOTES_DIR, '.labels.json')
 const ATTACHMENTS_DIR = join(NOTES_DIR, 'attachments')
 const HISTORY_DIR = join(NOTES_DIR, '.history')
+const SETTINGS_FILE = join(NOTES_DIR, '.settings.json')
 
 // Ensure notes directory exists
 function ensureNotesDir() {
@@ -413,4 +414,62 @@ ipcMain.handle('notes:getRevision', (_event, path: string) => {
         // ignore
     }
     return null
+})
+
+// IPC: Settings Management
+ipcMain.handle('settings:hasKey', () => {
+    try {
+        if (existsSync(SETTINGS_FILE)) {
+            const settings = JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'))
+            return !!settings.openRouterKey
+        }
+    } catch { }
+    return false
+})
+
+ipcMain.handle('settings:saveKey', (_event, key: string) => {
+    try {
+        const { safeStorage } = require('electron')
+        const encrypted = safeStorage.encryptString(key).toString('base64')
+        writeFileSync(SETTINGS_FILE, JSON.stringify({ openRouterKey: encrypted }), 'utf-8')
+        return true
+    } catch (e) {
+        console.error('Failed to save key:', e)
+        return false
+    }
+})
+
+// IPC: AI Assistant
+ipcMain.handle('ai:chat', async (_event, { messages, systemPrompt, model = 'stepfun/step-3.5-flash:free' }) => {
+    try {
+        const { safeStorage } = require('electron')
+        if (!existsSync(SETTINGS_FILE)) throw new Error('API Key not set')
+
+        const settings = JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'))
+        const encryptedKey = settings.openRouterKey
+        if (!encryptedKey) throw new Error('API Key not set')
+
+        const apiKey = safeStorage.decryptString(Buffer.from(encryptedKey, 'base64'))
+
+        const { OpenRouter } = await import('@openrouter/sdk')
+        const openrouter = new OpenRouter({ apiKey })
+
+        const fullMessages = [
+            { role: 'system', content: systemPrompt || 'You are a helpful assistant.' },
+            ...messages
+        ]
+
+        // Using 'as any' to bypass version-specific type differences while matching user's SDK snippet
+        const response = await (openrouter.chat.send as any)({
+            chatGenerationParams: {
+                model,
+                messages: fullMessages,
+            }
+        })
+
+        return { content: response.choices[0]?.message?.content || '', usage: response.usage }
+    } catch (e: any) {
+        console.error('AI Error:', e)
+        return { error: e.message }
+    }
 })

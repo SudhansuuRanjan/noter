@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
-import { Search, Plus, Star, FileText, FolderOpen, Tag, X, ChevronRight, ChevronDown, Edit2, Check, Calendar, HelpCircle, ArrowUpDown, SortAsc, SortDesc } from 'lucide-react'
+import { Search, Plus, Star, FileText, FolderOpen, Tag, X, ChevronRight, ChevronDown, Edit2, Check, Calendar, HelpCircle, ArrowUpDown, SortAsc, SortDesc, Sparkles, Settings } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
 import { NoteCard } from './NoteCard'
 import { ThemeToggle } from './ThemeToggle'
 import { HelpModal } from './HelpModal'
+import { AISettings } from './AISettings'
+import { AICommand } from './AICommand'
 
 export function Sidebar() {
     const {
@@ -27,6 +29,7 @@ export function Sidebar() {
     const [isLabelsExpanded, setIsLabelsExpanded] = useState(false)
     const [isTagsExpanded, setIsTagsExpanded] = useState(false)
     const [isHelpOpen, setIsHelpOpen] = useState(false)
+    const [isAISettingsOpen, setIsAISettingsOpen] = useState(false)
     const [isCreatingLabel, setIsCreatingLabel] = useState(false)
     const [newLabelName, setNewLabelName] = useState('')
     const [newLabelColor, setNewLabelColor] = useState('#3b82f6') // default blue
@@ -75,18 +78,18 @@ export function Sidebar() {
                     <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
                         <ThemeToggle />
                         <button
+                            onClick={() => setIsAISettingsOpen(true)}
+                            className="p-2 rounded-lg text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200"
+                            title="AI Settings"
+                        >
+                            <Settings size={14} />
+                        </button>
+                        <button
                             onClick={() => setIsHelpOpen(true)}
                             className="p-2 rounded-lg text-amber-500 hover:text-amber-600 dark:text-amber-400 dark:hover:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all duration-200"
                             title="Help Guide"
                         >
                             <HelpCircle size={15} />
-                        </button>
-                        <button
-                            onClick={openFolder}
-                            className="p-2 rounded-lg text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all duration-200"
-                            title="Open Notes Folder"
-                        >
-                            <FolderOpen size={15} />
                         </button>
                     </div>
                 </div>
@@ -339,6 +342,7 @@ export function Sidebar() {
             </div>
 
             <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+            <AISettings isOpen={isAISettingsOpen} onClose={() => setIsAISettingsOpen(false)} />
         </div>
     )
 }

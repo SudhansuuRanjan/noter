@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { Search, FileText, Plus, Moon, Sun, Tag, FolderOpen } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
 
@@ -71,8 +72,8 @@ export function CommandPalette() {
         setIsOpen(false)
     }
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] bg-black/20 dark:bg-black/40 backdrop-blur-sm animate-fade-in">
+    return createPortal(
+        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] bg-black/20 dark:bg-black/40 backdrop-blur-sm animate-fade-in">
             <div
                 ref={containerRef}
                 className="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden transform scale-100 transition-transform"
@@ -155,6 +156,7 @@ export function CommandPalette() {
                     )}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     )
 }
