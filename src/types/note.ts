@@ -32,6 +32,7 @@ export interface ElectronAPI {
     openFolder: () => Promise<void>
     listLabels: () => Promise<Label[]>
     createLabel: (name: string, color: string) => Promise<Label>
+    updateLabel: (id: string, name: string, color: string) => Promise<Label | null>
     deleteLabel: (id: string) => Promise<boolean>
 }
 

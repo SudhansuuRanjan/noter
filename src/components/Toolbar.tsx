@@ -14,6 +14,8 @@ export function Toolbar() {
     const [isLabelMenuOpen, setIsLabelMenuOpen] = useState(false)
     const labelMenuRef = useRef<HTMLDivElement>(null)
 
+    const activeLabel = activeNote?.labelId ? state.labels.find(l => l.id === activeNote.labelId) : null
+
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (labelMenuRef.current && !labelMenuRef.current.contains(event.target as Node)) {
@@ -63,13 +65,18 @@ export function Toolbar() {
                 <div className="relative" ref={labelMenuRef}>
                     <button
                         onClick={() => setIsLabelMenuOpen(!isLabelMenuOpen)}
-                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${activeNote.labelId
+                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${activeLabel
                             ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
                             : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-300'
                             }`}
                         title="Assign Label"
                     >
-                        <Tag size={13} className={activeNote.labelId ? 'text-indigo-500 dark:text-indigo-400' : ''} />
+                        <Tag size={13} className={activeLabel ? '' : ''} style={activeLabel ? { color: activeLabel.color } : {}} />
+                        {activeLabel && (
+                            <span className="truncate max-w-[100px]" style={{ color: activeLabel.color }}>
+                                {activeLabel.name}
+                            </span>
+                        )}
                     </button>
 
                     {isLabelMenuOpen && (

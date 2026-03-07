@@ -33,6 +33,7 @@ type Action =
     | { type: 'ADD_NOTE'; note: Note }
     | { type: 'SET_LABELS'; labels: Label[] }
     | { type: 'ADD_LABEL'; label: Label }
+    | { type: 'UPDATE_LABEL'; label: Label }
     | { type: 'REMOVE_LABEL'; id: string }
 
 function notesReducer(state: NotesState, action: Action): NotesState {
@@ -103,6 +104,11 @@ function notesReducer(state: NotesState, action: Action): NotesState {
                 ...state,
                 labels: [...state.labels, action.label]
             }
+        case 'UPDATE_LABEL':
+            return {
+                ...state,
+                labels: state.labels.map(l => l.id === action.label.id ? action.label : l)
+            }
         case 'REMOVE_LABEL':
             return {
                 ...state,
@@ -160,6 +166,7 @@ interface NotesContextValue {
     setDeleteConfirm: (id: string | null) => void
     openFolder: () => void
     createLabel: (name: string, color: string) => Promise<void>
+    updateLabel: (id: string, name: string, color: string) => Promise<void>
     deleteLabel: (id: string) => Promise<void>
     updateNoteLabel: (id: string, labelId: string | undefined) => Promise<void>
 }
@@ -275,6 +282,13 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: 'ADD_LABEL', label })
     }, [])
 
+    const updateLabel = useCallback(async (id: string, name: string, color: string) => {
+        const label = await window.electronAPI.updateLabel(id, name, color)
+        if (label) {
+            dispatch({ type: 'UPDATE_LABEL', label })
+        }
+    }, [])
+
     const deleteLabel = useCallback(async (id: string) => {
         await window.electronAPI.deleteLabel(id)
         dispatch({ type: 'REMOVE_LABEL', id })
@@ -321,6 +335,7 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             setDeleteConfirm,
             openFolder,
             createLabel,
+            updateLabel,
             deleteLabel,
             updateNoteLabel
         }}>

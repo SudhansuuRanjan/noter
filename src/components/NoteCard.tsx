@@ -56,18 +56,19 @@ export function NoteCard({ note, isActive }: NoteCardProps) {
                     <p className="text-xs text-zinc-500 dark:text-zinc-500 truncate leading-relaxed">
                         {note.preview || 'Empty note'}
                     </p>
-                    <div className="flex items-center justify-between mt-1">
-                        <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium tracking-wide">
+                    <div className="flex items-center gap-2 mt-1.5">
+                        <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium tracking-wide whitespace-nowrap">
                             {formatDate(note.updatedAt)}
                         </p>
                         {label && (
                             <div
-                                className="px-1.5 py-0.5 rounded text-[9px] font-medium border"
+                                className="px-1.5 py-0.5 rounded text-[9px] font-medium border truncate max-w-[90px] leading-none flex items-center"
                                 style={{
                                     backgroundColor: `${label.color}15`,
                                     color: label.color,
                                     borderColor: `${label.color}30`
                                 }}
+                                title={label.name}
                             >
                                 {label.name}
                             </div>

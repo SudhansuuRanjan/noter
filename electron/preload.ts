@@ -31,6 +31,7 @@ export interface ElectronAPI {
     openFolder: () => Promise<void>
     listLabels: () => Promise<Label[]>
     createLabel: (name: string, color: string) => Promise<Label>
+    updateLabel: (id: string, name: string, color: string) => Promise<Label | null>
     deleteLabel: (id: string) => Promise<boolean>
 }
 
@@ -47,6 +48,7 @@ const api: ElectronAPI = {
     openFolder: () => ipcRenderer.invoke('notes:openFolder'),
     listLabels: () => ipcRenderer.invoke('labels:list'),
     createLabel: (name, color) => ipcRenderer.invoke('labels:create', { name, color }),
+    updateLabel: (id, name, color) => ipcRenderer.invoke('labels:update', { id, name, color }),
     deleteLabel: (id) => ipcRenderer.invoke('labels:delete', id)
 }
 

@@ -283,3 +283,15 @@ ipcMain.handle('labels:delete', (_event, id: string) => {
 
     return true
 })
+
+ipcMain.handle('labels:update', (_event, { id, name, color }: { id: string; name: string; color: string }) => {
+    ensureNotesDir()
+    const labels = readLabels()
+    const index = labels.findIndex(l => l.id === id)
+    if (index !== -1) {
+        labels[index] = { ...labels[index], name, color }
+        writeLabels(labels)
+        return labels[index]
+    }
+    return null
+})
