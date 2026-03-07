@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Edit2, Eye, Columns, Download, Trash2, Star, Save, Tag } from 'lucide-react'
+import { Edit2, Eye, Columns, Download, Trash2, Star, Save, Tag, Pin, History as HistoryIcon, PanelLeft } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
 import { ViewMode } from '../types/note'
+import { HistoryModal } from './HistoryModal'
 
 const viewModes: { mode: ViewMode; icon: React.ReactNode; label: string }[] = [
     { mode: 'edit', icon: <Edit2 size={14} />, label: 'Edit' },
@@ -10,8 +11,9 @@ const viewModes: { mode: ViewMode; icon: React.ReactNode; label: string }[] = [
 ]
 
 export function Toolbar() {
-    const { state, activeNote, setViewMode, toggleStar, exportNote, setDeleteConfirm, updateNoteLabel } = useNotes()
+    const { state, activeNote, setViewMode, toggleStar, togglePin, exportNote, setDeleteConfirm, updateNoteLabel, toggleSidebar } = useNotes()
     const [isLabelMenuOpen, setIsLabelMenuOpen] = useState(false)
+    const [showHistory, setShowHistory] = useState(false)
     const labelMenuRef = useRef<HTMLDivElement>(null)
 
     const activeLabel = activeNote?.labelId ? state.labels.find(l => l.id === activeNote.labelId) : null
@@ -29,9 +31,17 @@ export function Toolbar() {
     if (!activeNote) return null
 
     return (
-        <div className="h-11 flex-shrink-0 flex items-center justify-between px-4 border-b border-zinc-200 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-900/40 backdrop-blur-sm" style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
+        <div className={`h-11 flex-shrink-0 flex items-center justify-between pr-4 border-b border-zinc-200 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-900/40 backdrop-blur-sm transition-all duration-200 ${!state.isSidebarOpen ? 'pl-20' : 'pl-4'}`} style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
             {/* Left: Note title + save indicator */}
             <div className="flex items-center gap-3 min-w-0" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+                <button
+                    onClick={toggleSidebar}
+                    className={`p-1.5 rounded-md transition-colors ${state.isSidebarOpen ? 'text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800' : 'text-zinc-800 bg-zinc-200 dark:text-zinc-200 dark:bg-zinc-700'}`}
+                    title="Toggle Sidebar"
+                >
+                    <PanelLeft size={16} />
+                </button>
+                <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-700/60" />
                 <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-200 truncate max-w-xs">
                     {activeNote.title}
                 </h2>
@@ -110,6 +120,17 @@ export function Toolbar() {
                 <div className="w-px h-5 bg-zinc-200 dark:bg-zinc-700/50 mx-1" />
 
                 <button
+                    onClick={() => togglePin(activeNote.id)}
+                    className={`p-2 rounded-lg transition-all duration-200 ${activeNote.pinned
+                        ? 'text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10'
+                        : 'text-zinc-400 hover:text-indigo-500 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                        }`}
+                    title={activeNote.pinned ? 'Unpin note' : 'Pin note to top'}
+                >
+                    <Pin size={15} className={activeNote.pinned ? 'fill-indigo-500' : ''} />
+                </button>
+
+                <button
                     onClick={() => toggleStar(activeNote.id)}
                     className={`p-2 rounded-lg transition-all duration-200 ${activeNote.starred
                         ? 'text-amber-500 bg-amber-50 dark:bg-amber-400/10'
@@ -128,6 +149,14 @@ export function Toolbar() {
                     <Download size={15} />
                 </button>
 
+                <button
+                    onClick={() => setShowHistory(true)}
+                    className="p-2 rounded-lg text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all duration-200"
+                    title="View Revision History"
+                >
+                    <HistoryIcon size={15} />
+                </button>
+
                 <div className="w-px h-5 bg-zinc-200 dark:bg-zinc-700/50 mx-1" />
 
                 <button
@@ -138,6 +167,10 @@ export function Toolbar() {
                     <Trash2 size={15} />
                 </button>
             </div>
+
+            {showHistory && (
+                <HistoryModal note={activeNote} onClose={() => setShowHistory(false)} />
+            )}
         </div>
     )
 }

@@ -1,5 +1,5 @@
-import { app, BrowserWindow, ipcMain, dialog, shell } from 'electron'
-import { join } from 'path'
+import { app, BrowserWindow, ipcMain, dialog, shell, protocol, net } from 'electron'
+import { join, extname } from 'path'
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, unlinkSync, copyFileSync } from 'fs'
 import { homedir } from 'os'
 import { v4 as uuidv4 } from 'uuid'
@@ -7,16 +7,18 @@ import { v4 as uuidv4 } from 'uuid'
 const NOTES_DIR = join(homedir(), 'Notes', 'noter')
 const META_FILE = join(NOTES_DIR, '.meta.json')
 const LABELS_FILE = join(NOTES_DIR, '.labels.json')
+const ATTACHMENTS_DIR = join(NOTES_DIR, 'attachments')
+const HISTORY_DIR = join(NOTES_DIR, '.history')
 
 // Ensure notes directory exists
 function ensureNotesDir() {
-    if (!existsSync(NOTES_DIR)) {
-        mkdirSync(NOTES_DIR, { recursive: true })
-    }
+    if (!existsSync(NOTES_DIR)) mkdirSync(NOTES_DIR, { recursive: true })
+    if (!existsSync(ATTACHMENTS_DIR)) mkdirSync(ATTACHMENTS_DIR, { recursive: true })
+    if (!existsSync(HISTORY_DIR)) mkdirSync(HISTORY_DIR, { recursive: true })
 }
 
 // Read metadata
-function readMeta(): Record<string, { starred: boolean; labelId?: string; createdAt: string; updatedAt: string }> {
+function readMeta(): Record<string, { starred: boolean; pinned?: boolean; tags?: string[]; labelId?: string; createdAt: string; updatedAt: string }> {
     try {
         if (existsSync(META_FILE)) {
             return JSON.parse(readFileSync(META_FILE, 'utf-8'))
@@ -28,7 +30,7 @@ function readMeta(): Record<string, { starred: boolean; labelId?: string; create
 }
 
 // Write metadata
-function writeMeta(meta: Record<string, { starred: boolean; labelId?: string; createdAt: string; updatedAt: string }>) {
+function writeMeta(meta: Record<string, { starred: boolean; pinned?: boolean; tags?: string[]; labelId?: string; createdAt: string; updatedAt: string }>) {
     writeFileSync(META_FILE, JSON.stringify(meta, null, 2), 'utf-8')
 }
 
@@ -62,7 +64,8 @@ function createWindow(): void {
             preload: join(__dirname, '../preload/preload.js'),
             sandbox: false,
             contextIsolation: true,
-            nodeIntegration: false
+            nodeIntegration: false,
+            webSecurity: true
         },
         show: false
     })
@@ -80,6 +83,17 @@ function createWindow(): void {
 
 app.whenReady().then(() => {
     ensureNotesDir()
+
+    protocol.handle('noter', (request) => {
+        const url = request.url.replace('noter://', '')
+        if (url.startsWith('attachments/')) {
+            const fileName = url.replace('attachments/', '')
+            const filePath = join(ATTACHMENTS_DIR, fileName)
+            return net.fetch('file://' + filePath)
+        }
+        return new Response('Not found', { status: 404 })
+    })
+
     createWindow()
     app.on('activate', function () {
         if (BrowserWindow.getAllWindows().length === 0) createWindow()
@@ -109,6 +123,8 @@ ipcMain.handle('notes:list', () => {
         const fileStat = require('fs').statSync(filePath)
         const metaEntry = meta[id] || {
             starred: false,
+            pinned: false,
+            tags: [],
             createdAt: fileStat.birthtime.toISOString(),
             updatedAt: fileStat.mtime.toISOString(),
             labelId: undefined
@@ -120,6 +136,8 @@ ipcMain.handle('notes:list', () => {
             preview,
             content,
             starred: metaEntry.starred,
+            pinned: metaEntry.pinned || false,
+            tags: metaEntry.tags || [],
             labelId: metaEntry.labelId,
             createdAt: metaEntry.createdAt,
             updatedAt: metaEntry.updatedAt,
@@ -140,18 +158,48 @@ ipcMain.handle('notes:write', (_event, { id, content }: { id: string; content: s
     ensureNotesDir()
     const filePath = join(NOTES_DIR, `${id}.md`)
     const isNew = !existsSync(filePath)
+
+    // Save history backup if content changed
+    if (!isNew) {
+        const existingContent = readFileSync(filePath, 'utf-8')
+        if (existingContent !== content) {
+            const noteHistoryDir = join(HISTORY_DIR, id)
+            if (!existsSync(noteHistoryDir)) mkdirSync(noteHistoryDir, { recursive: true })
+            const backupPath = join(noteHistoryDir, `${Date.now()}.md`)
+            writeFileSync(backupPath, existingContent, 'utf-8')
+        }
+    }
+
     writeFileSync(filePath, content, 'utf-8')
+
+    // Parse tags from content
+    const tagsMatch = Array.from(content.matchAll(/(?:^|\s)(#[a-zA-Z0-9_-]+)/g))
+    const tags = tagsMatch.length > 0 ? Array.from(new Set(tagsMatch.map(m => m[1]))) : []
 
     const meta = readMeta()
     const now = new Date().toISOString()
     if (!meta[id]) {
-        meta[id] = { starred: false, createdAt: now, updatedAt: now }
+        meta[id] = { starred: false, pinned: false, tags, createdAt: now, updatedAt: now }
     } else {
         meta[id].updatedAt = now
+        meta[id].tags = tags
     }
     writeMeta(meta)
 
     return { id, isNew, updatedAt: meta[id].updatedAt }
+})
+
+// IPC: Attachments Subsystem
+ipcMain.handle('attachments:save', async (_event, buffer: ArrayBuffer, originalName: string) => {
+    ensureNotesDir()
+
+    const ext = extname(originalName) || '.png'
+    const uniqueName = `${uuidv4()}${ext}`
+    const destPath = join(ATTACHMENTS_DIR, uniqueName)
+
+    writeFileSync(destPath, Buffer.from(buffer))
+
+    return `noter://attachments/${uniqueName}`
 })
 
 // IPC: Create new note
@@ -188,10 +236,22 @@ ipcMain.handle('notes:star', (_event, id: string) => {
     if (meta[id]) {
         meta[id].starred = !meta[id].starred
     } else {
-        meta[id] = { starred: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+        meta[id] = { starred: true, pinned: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
     }
     writeMeta(meta)
     return meta[id].starred
+})
+
+// IPC: Toggle pin
+ipcMain.handle('notes:togglePin', (_event, id: string) => {
+    const meta = readMeta()
+    if (meta[id]) {
+        meta[id].pinned = !meta[id].pinned
+    } else {
+        meta[id] = { starred: false, pinned: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+    }
+    writeMeta(meta)
+    return meta[id].pinned
 })
 
 // IPC: Update Note Label
@@ -292,6 +352,35 @@ ipcMain.handle('labels:update', (_event, { id, name, color }: { id: string; name
         labels[index] = { ...labels[index], name, color }
         writeLabels(labels)
         return labels[index]
+    }
+    return null
+})
+
+// IPC: List note history
+ipcMain.handle('notes:getHistory', (_event, id: string) => {
+    const noteHistoryDir = join(HISTORY_DIR, id)
+    if (!existsSync(noteHistoryDir)) return []
+
+    const files = readdirSync(noteHistoryDir)
+        .filter(f => f.endsWith('.md'))
+        .sort((a, b) => Number(b.replace('.md', '')) - Number(a.replace('.md', ''))) // newest first
+
+    return files.map(filename => {
+        const timestamp = Number(filename.replace('.md', ''))
+        const content = readFileSync(join(noteHistoryDir, filename), 'utf-8')
+        const preview = content.slice(0, 100).replace(/\n/g, ' ') + (content.length > 100 ? '...' : '')
+        return { timestamp, preview, path: join(noteHistoryDir, filename) }
+    })
+})
+
+// IPC: Read specific revision
+ipcMain.handle('notes:getRevision', (_event, path: string) => {
+    try {
+        if (existsSync(path)) {
+            return readFileSync(path, 'utf-8')
+        }
+    } catch {
+        // ignore
     }
     return null
 })

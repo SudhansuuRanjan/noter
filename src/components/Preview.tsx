@@ -4,7 +4,7 @@ import rehypeHighlight from 'rehype-highlight'
 import { useNotes } from '../context/NotesContext'
 
 export function Preview() {
-    const { activeNote } = useNotes()
+    const { activeNote, openNoteByTitle } = useNotes()
 
     if (!activeNote) {
         return <div className="flex-1 h-full bg-white dark:bg-zinc-950" />
@@ -12,7 +12,7 @@ export function Preview() {
 
     return (
         <div className="flex-1 h-full overflow-y-auto bg-white dark:bg-zinc-950">
-            <div className="max-w-3xl mx-auto px-8 py-6">
+            <div className="max-w-4xl mx-auto px-8 py-6">
                 <div className="
           prose prose-zinc dark:prose-invert max-w-none
           prose-headings:font-semibold prose-headings:tracking-tight
@@ -38,10 +38,29 @@ export function Preview() {
                                     {...props}
                                     className="mr-2 accent-indigo-600 w-4 h-4 rounded"
                                 />
-                            )
+                            ),
+                            a: ({ href, children, ...props }) => {
+                                if (href?.startsWith('noteref://')) {
+                                    const title = decodeURIComponent(href.replace('noteref://', ''))
+                                    return (
+                                        <a
+                                            href="#"
+                                            onClick={(e) => {
+                                                e.preventDefault()
+                                                if (title) openNoteByTitle(title)
+                                            }}
+                                            className="text-indigo-600 dark:text-indigo-400 no-underline hover:underline cursor-pointer border-b border-indigo-200 dark:border-indigo-900/50 pb-0.5"
+                                            {...props}
+                                        >
+                                            {children}
+                                        </a>
+                                    )
+                                }
+                                return <a href={href} target="_blank" rel="noopener noreferrer" {...props}>{children}</a>
+                            }
                         }}
                     >
-                        {activeNote.content}
+                        {activeNote.content.replace(/\[\[(.*?)\]\]/g, '[$1](noteref://$1)')}
                     </ReactMarkdown>
                 </div>
             </div>

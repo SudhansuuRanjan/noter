@@ -4,6 +4,8 @@ export interface Note {
     preview: string
     content: string
     starred: boolean
+    pinned?: boolean
+    tags?: string[]
     labelId?: string
     createdAt: string
     updatedAt: string
@@ -26,6 +28,7 @@ export interface ElectronAPI {
     createNote: () => Promise<{ id: string; content: string; createdAt: string; updatedAt: string }>
     deleteNote: (id: string) => Promise<boolean>
     starNote: (id: string) => Promise<boolean>
+    togglePin: (id: string) => Promise<boolean>
     updateNoteLabel: (id: string, labelId: string | undefined) => Promise<boolean>
     importNotes: () => Promise<string[] | null>
     exportNote: (id: string, title: string) => Promise<string | false>
@@ -34,6 +37,9 @@ export interface ElectronAPI {
     createLabel: (name: string, color: string) => Promise<Label>
     updateLabel: (id: string, name: string, color: string) => Promise<Label | null>
     deleteLabel: (id: string) => Promise<boolean>
+    saveAttachment: (buffer: ArrayBuffer, filename: string) => Promise<string>
+    getHistory: (id: string) => Promise<{ timestamp: number, preview: string, path: string }[]>
+    getRevision: (path: string) => Promise<string | null>
 }
 
 declare global {

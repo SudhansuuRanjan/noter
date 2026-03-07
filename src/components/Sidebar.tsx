@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { Search, Plus, Star, FileText, FolderOpen, Tag, X, ChevronRight, ChevronDown, Edit2, Check } from 'lucide-react'
+import { Search, Plus, Star, FileText, FolderOpen, Tag, X, ChevronRight, ChevronDown, Edit2, Check, Calendar, HelpCircle } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
 import { NoteCard } from './NoteCard'
 import { ThemeToggle } from './ThemeToggle'
+import { HelpModal } from './HelpModal'
 
 export function Sidebar() {
     const {
@@ -14,12 +15,16 @@ export function Sidebar() {
         setSearch,
         setSelectedLabelId,
         openFolder,
+        openDailyNote,
         createLabel,
         updateLabel,
-        deleteLabel
+        deleteLabel,
+        setSelectedTag
     } = useNotes()
 
     const [isLabelsExpanded, setIsLabelsExpanded] = useState(false)
+    const [isTagsExpanded, setIsTagsExpanded] = useState(false)
+    const [isHelpOpen, setIsHelpOpen] = useState(false)
     const [isCreatingLabel, setIsCreatingLabel] = useState(false)
     const [newLabelName, setNewLabelName] = useState('')
     const [newLabelColor, setNewLabelColor] = useState('#3b82f6') // default blue
@@ -51,8 +56,11 @@ export function Sidebar() {
         }
     }
 
+    // Extract unique tags from all notes
+    const allTags = Array.from(new Set(state.notes.flatMap(n => n.tags || []))).sort()
+
     return (
-        <div className="w-72 flex-shrink-0 h-full flex flex-col bg-zinc-50 dark:bg-zinc-900/50 border-r border-zinc-200 dark:border-zinc-800/60">
+        <div className="w-full h-full flex flex-col bg-zinc-50 dark:bg-zinc-900/50">
             {/* Header — traffic light space + drag region */}
             <div className="pt-10 pb-3 px-4" style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
                 <div className="flex items-center justify-between mb-4">
@@ -65,6 +73,13 @@ export function Sidebar() {
                     <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
                         <ThemeToggle />
                         <button
+                            onClick={() => setIsHelpOpen(true)}
+                            className="p-2 rounded-lg text-amber-500 hover:text-amber-600 dark:text-amber-400 dark:hover:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all duration-200"
+                            title="Help Guide"
+                        >
+                            <HelpCircle size={15} />
+                        </button>
+                        <button
                             onClick={openFolder}
                             className="p-2 rounded-lg text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all duration-200"
                             title="Open Notes Folder"
@@ -74,14 +89,22 @@ export function Sidebar() {
                     </div>
                 </div>
 
-                {/* New Note + Import */}
+                {/* New Note + Daily Note + Import */}
                 <div className="flex gap-2" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
                     <button
                         onClick={createNote}
                         className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition-all duration-200 shadow-lg shadow-indigo-600/20 active:scale-95"
+                        title="Create regular note"
                     >
                         <Plus size={14} />
-                        New Note
+                        New
+                    </button>
+                    <button
+                        onClick={openDailyNote}
+                        className="py-2 px-3 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 text-xs font-medium transition-all duration-200 active:scale-95"
+                        title="Daily Note"
+                    >
+                        <Calendar size={14} />
                     </button>
                     <button
                         onClick={importNotes}
@@ -230,6 +253,35 @@ export function Sidebar() {
                 )}
             </div>
 
+            {/* Tags Section */}
+            <div className="px-4 mb-3">
+                <div className="flex items-center justify-between mb-1 group">
+                    <button
+                        onClick={() => setIsTagsExpanded(!isTagsExpanded)}
+                        className="flex items-center gap-1 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+                    >
+                        {isTagsExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                        Tags
+                    </button>
+                </div>
+                {isTagsExpanded && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                        {allTags.map(tag => (
+                            <button
+                                key={tag}
+                                onClick={() => setSelectedTag(state.selectedTag === tag ? null : tag)}
+                                className={`px-2 py-1 rounded-md text-[11px] font-medium transition-colors ${state.selectedTag === tag ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300' : 'bg-zinc-200/50 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'}`}
+                            >
+                                {tag}
+                            </button>
+                        ))}
+                        {allTags.length === 0 && (
+                            <p className="text-xs text-zinc-400 dark:text-zinc-600 px-1 py-1">No tags found in notes</p>
+                        )}
+                    </div>
+                )}
+            </div>
+
             {/* Notes list */}
             <div className="flex-1 overflow-y-auto px-2 pb-4">
                 {state.isLoading ? (
@@ -261,6 +313,8 @@ export function Sidebar() {
                     </div>
                 )}
             </div>
+
+            <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
         </div>
     )
 }

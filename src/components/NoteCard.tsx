@@ -1,4 +1,4 @@
-import { Star, Trash2 } from 'lucide-react'
+import { Star, Trash2, Pin } from 'lucide-react'
 import { Note } from '../types/note'
 import { useNotes } from '../context/NotesContext'
 
@@ -25,7 +25,7 @@ function formatDate(dateStr: string) {
 }
 
 export function NoteCard({ note, isActive }: NoteCardProps) {
-    const { state, setActiveNote, toggleStar, setDeleteConfirm } = useNotes()
+    const { state, setActiveNote, toggleStar, togglePin, setDeleteConfirm } = useNotes()
 
     const label = note.labelId ? state.labels.find(l => l.id === note.labelId) : null
 
@@ -41,9 +41,12 @@ export function NoteCard({ note, isActive }: NoteCardProps) {
       `}
         >
             <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
+                <div className='w-full'>
                     <div className="flex items-center gap-1.5 mb-0.5">
-                        {note.starred && (
+                        {note.pinned && (
+                            <Pin size={11} className="text-indigo-500 fill-indigo-500 flex-shrink-0" />
+                        )}
+                        {note.starred && !note.pinned && (
                             <Star size={11} className="text-amber-500 fill-amber-500 flex-shrink-0" />
                         )}
                         <h3 className={`text-sm font-medium truncate ${isActive
@@ -56,8 +59,9 @@ export function NoteCard({ note, isActive }: NoteCardProps) {
                     <p className="text-xs text-zinc-500 dark:text-zinc-500 truncate leading-relaxed">
                         {note.preview || 'Empty note'}
                     </p>
-                    <div className="flex items-center gap-2 mt-1.5">
-                        <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium tracking-wide whitespace-nowrap">
+                    <div className="flex items-center justify-between mt-1.5">
+                        <div className='flex items-center gap-2'>
+                            <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium tracking-wide whitespace-nowrap">
                             {formatDate(note.updatedAt)}
                         </p>
                         {label && (
@@ -73,28 +77,39 @@ export function NoteCard({ note, isActive }: NoteCardProps) {
                                 {label.name}
                             </div>
                         )}
-                    </div>
-                </div>
+                        </div>
 
-                <div className={`flex items-center gap-0.5 flex-shrink-0 transition-opacity duration-150 ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                    }`}>
-                    <button
-                        onClick={(e) => { e.stopPropagation(); toggleStar(note.id) }}
-                        className="p-1.5 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all duration-150"
-                        title={note.starred ? 'Unstar' : 'Star'}
-                    >
-                        <Star
-                            size={13}
-                            className={note.starred ? 'text-amber-500 fill-amber-500' : 'text-zinc-400'}
-                        />
-                    </button>
-                    <button
-                        onClick={(e) => { e.stopPropagation(); setDeleteConfirm(note.id) }}
-                        className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-500/20 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-all duration-150"
-                        title="Delete"
-                    >
-                        <Trash2 size={13} />
-                    </button>
+                        <div className={`flex self-end items-center gap-0.5 flex-shrink-0 transition-opacity duration-150 ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                            }`}>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); togglePin(note.id) }}
+                                className="p-1.5 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all duration-150"
+                                title={note.pinned ? 'Unpin' : 'Pin to top'}
+                            >
+                                <Pin
+                                    size={13}
+                                    className={note.pinned ? 'text-indigo-500 fill-indigo-500' : 'text-zinc-400'}
+                                />
+                            </button>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); toggleStar(note.id) }}
+                                className="p-1.5 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all duration-150"
+                                title={note.starred ? 'Unstar' : 'Star'}
+                            >
+                                <Star
+                                    size={13}
+                                    className={note.starred ? 'text-amber-500 fill-amber-500' : 'text-zinc-400'}
+                                />
+                            </button>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setDeleteConfirm(note.id) }}
+                                className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-500/20 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-all duration-150"
+                                title="Delete"
+                            >
+                                <Trash2 size={13} />
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

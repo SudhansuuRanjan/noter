@@ -9,10 +9,12 @@ interface NotesState {
     filterMode: FilterMode
     searchQuery: string
     selectedLabelId: string | null
+    selectedTag: string | null
     theme: 'dark' | 'light'
     isLoading: boolean
     isSaving: boolean
     deleteConfirmId: string | null
+    isSidebarOpen: boolean
 }
 
 type Action =
@@ -22,13 +24,16 @@ type Action =
     | { type: 'SET_FILTER'; filter: FilterMode }
     | { type: 'SET_SEARCH'; query: string }
     | { type: 'SET_SELECTED_LABEL'; labelId: string | null }
+    | { type: 'SET_SELECTED_TAG'; tag: string | null }
     | { type: 'SET_THEME'; theme: 'dark' | 'light' }
     | { type: 'SET_LOADING'; loading: boolean }
     | { type: 'SET_SAVING'; saving: boolean }
     | { type: 'SET_DELETE_CONFIRM'; id: string | null }
+    | { type: 'TOGGLE_SIDEBAR' }
     | { type: 'UPDATE_NOTE'; id: string; content: string; updatedAt: string }
     | { type: 'REMOVE_NOTE'; id: string }
     | { type: 'TOGGLE_STAR'; id: string; starred: boolean }
+    | { type: 'TOGGLE_PIN'; id: string; pinned: boolean }
     | { type: 'UPDATE_NOTE_LABEL'; id: string; labelId: string | undefined }
     | { type: 'ADD_NOTE'; note: Note }
     | { type: 'SET_LABELS'; labels: Label[] }
@@ -39,7 +44,15 @@ type Action =
 function notesReducer(state: NotesState, action: Action): NotesState {
     switch (action.type) {
         case 'SET_NOTES':
-            return { ...state, notes: action.notes, isLoading: false }
+            return {
+                ...state,
+                notes: action.notes.sort((a, b) => {
+                    if (a.pinned && !b.pinned) return -1
+                    if (!a.pinned && b.pinned) return 1
+                    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+                }),
+                isLoading: false
+            }
         case 'SET_LABELS':
             return { ...state, labels: action.labels }
         case 'SET_ACTIVE':
@@ -52,6 +65,8 @@ function notesReducer(state: NotesState, action: Action): NotesState {
             return { ...state, searchQuery: action.query }
         case 'SET_SELECTED_LABEL':
             return { ...state, selectedLabelId: action.labelId }
+        case 'SET_SELECTED_TAG':
+            return { ...state, selectedTag: action.tag }
         case 'SET_THEME':
             return { ...state, theme: action.theme }
         case 'SET_LOADING':
@@ -60,7 +75,12 @@ function notesReducer(state: NotesState, action: Action): NotesState {
             return { ...state, isSaving: action.saving }
         case 'SET_DELETE_CONFIRM':
             return { ...state, deleteConfirmId: action.id }
-        case 'UPDATE_NOTE':
+        case 'TOGGLE_SIDEBAR':
+            return { ...state, isSidebarOpen: !state.isSidebarOpen }
+        case 'UPDATE_NOTE': {
+            const tagsMatch = Array.from(action.content.matchAll(/(?:^|\s)(#[a-zA-Z0-9_-]+)/g))
+            const tags = tagsMatch.length > 0 ? Array.from(new Set(tagsMatch.map(m => m[1]))) : []
+
             return {
                 ...state,
                 isSaving: false,
@@ -71,11 +91,17 @@ function notesReducer(state: NotesState, action: Action): NotesState {
                             content: action.content,
                             updatedAt: action.updatedAt,
                             title: extractTitle(action.content),
-                            preview: extractPreview(action.content)
+                            preview: extractPreview(action.content),
+                            tags
                         }
                         : n
-                ).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+                ).sort((a, b) => {
+                    if (a.pinned && !b.pinned) return -1
+                    if (!a.pinned && b.pinned) return 1
+                    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+                })
             }
+        }
         case 'REMOVE_NOTE':
             return {
                 ...state,
@@ -88,6 +114,16 @@ function notesReducer(state: NotesState, action: Action): NotesState {
                 ...state,
                 notes: state.notes.map(n => n.id === action.id ? { ...n, starred: action.starred } : n)
             }
+        case 'TOGGLE_PIN':
+            return {
+                ...state,
+                notes: state.notes.map(n => n.id === action.id ? { ...n, pinned: action.pinned } : n)
+                    .sort((a, b) => {
+                        if (a.pinned && !b.pinned) return -1
+                        if (!a.pinned && b.pinned) return 1
+                        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+                    })
+            }
         case 'UPDATE_NOTE_LABEL':
             return {
                 ...state,
@@ -96,7 +132,11 @@ function notesReducer(state: NotesState, action: Action): NotesState {
         case 'ADD_NOTE':
             return {
                 ...state,
-                notes: [action.note, ...state.notes],
+                notes: [action.note, ...state.notes].sort((a, b) => {
+                    if (a.pinned && !b.pinned) return -1
+                    if (!a.pinned && b.pinned) return 1
+                    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+                }),
                 activeNoteId: action.note.id
             }
         case 'ADD_LABEL':
@@ -140,10 +180,12 @@ const initialState: NotesState = {
     filterMode: 'all',
     searchQuery: '',
     selectedLabelId: null,
+    selectedTag: null,
     theme: (localStorage.getItem('noter-theme') as 'dark' | 'light') || 'dark',
     isLoading: true,
     isSaving: false,
-    deleteConfirmId: null
+    deleteConfirmId: null,
+    isSidebarOpen: true
 }
 
 interface NotesContextValue {
@@ -152,9 +194,11 @@ interface NotesContextValue {
     filteredNotes: Note[]
     loadNotes: () => Promise<void>
     createNote: () => Promise<void>
+    openDailyNote: () => Promise<void>
     updateNote: (id: string, content: string) => void
     deleteNote: (id: string) => Promise<void>
     toggleStar: (id: string) => Promise<void>
+    togglePin: (id: string) => Promise<void>
     importNotes: () => Promise<void>
     exportNote: (id: string, title: string) => Promise<void>
     setActiveNote: (id: string | null) => void
@@ -162,13 +206,16 @@ interface NotesContextValue {
     setFilter: (filter: FilterMode) => void
     setSearch: (query: string) => void
     setSelectedLabelId: (id: string | null) => void
+    setSelectedTag: (tag: string | null) => void
     toggleTheme: () => void
+    toggleSidebar: () => void
     setDeleteConfirm: (id: string | null) => void
     openFolder: () => void
     createLabel: (name: string, color: string) => Promise<void>
     updateLabel: (id: string, name: string, color: string) => Promise<void>
     deleteLabel: (id: string) => Promise<void>
     updateNoteLabel: (id: string, labelId: string | undefined) => Promise<void>
+    openNoteByTitle: (title: string) => Promise<void>
 }
 
 const NotesContext = createContext<NotesContextValue | null>(null)
@@ -219,6 +266,75 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: 'ADD_NOTE', note })
     }, [])
 
+    const openDailyNote = useCallback(async () => {
+        const todayString = new Date().toISOString().split('T')[0]
+        const existingNote = state.notes.find(n => n.title === todayString)
+
+        // Ensure "Journal" label exists
+        let journalLabel = state.labels.find(l => l.name.toLowerCase() === 'journal')
+        if (!journalLabel) {
+            journalLabel = await window.electronAPI.createLabel('Journal', '#10b981')
+            dispatch({ type: 'ADD_LABEL', label: journalLabel })
+        }
+
+        if (existingNote) {
+            dispatch({ type: 'SET_ACTIVE', id: existingNote.id })
+            // Auto apply journal label if missing
+            if (existingNote.labelId !== journalLabel.id) {
+                await window.electronAPI.updateNoteLabel(existingNote.id, journalLabel.id)
+                dispatch({ type: 'UPDATE_NOTE_LABEL', id: existingNote.id, labelId: journalLabel.id })
+            }
+        } else {
+            const result = await window.electronAPI.createNote()
+            const content = `# ${todayString}\n\n`
+            await window.electronAPI.writeNote(result.id, content)
+            await window.electronAPI.updateNoteLabel(result.id, journalLabel.id)
+
+            const note: Note = {
+                id: result.id,
+                title: todayString,
+                preview: '',
+                content: content,
+                starred: false,
+                createdAt: result.createdAt,
+                updatedAt: result.updatedAt,
+                filePath: '',
+                labelId: journalLabel.id
+            }
+            dispatch({ type: 'ADD_NOTE', note })
+            dispatch({ type: 'SET_ACTIVE', id: note.id })
+        }
+    }, [state.notes, state.labels])
+
+    const openNoteByTitle = useCallback(async (title: string) => {
+        const cleanTitle = title.trim()
+        const existingNote = state.notes.find(n => n.title.toLowerCase() === cleanTitle.toLowerCase())
+
+        if (existingNote) {
+            dispatch({ type: 'SET_ACTIVE', id: existingNote.id })
+            return
+        }
+
+        // Note doesn't exist, create it
+        const result = await window.electronAPI.createNote()
+        const content = `# ${cleanTitle}\n\n`
+        await window.electronAPI.writeNote(result.id, content)
+
+        const note = {
+            id: result.id,
+            title: cleanTitle,
+            preview: '',
+            content,
+            starred: false,
+            createdAt: result.createdAt,
+            updatedAt: result.updatedAt,
+            filePath: '',
+            pinned: false,
+            tags: []
+        }
+        dispatch({ type: 'ADD_NOTE', note })
+    }, [state.notes])
+
     const updateNote = useCallback((id: string, content: string) => {
         dispatch({ type: 'SET_SAVING', saving: true })
         if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
@@ -238,6 +354,11 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: 'TOGGLE_STAR', id, starred })
     }, [])
 
+    const togglePin = useCallback(async (id: string) => {
+        const pinned = await window.electronAPI.togglePin(id)
+        dispatch({ type: 'TOGGLE_PIN', id, pinned })
+    }, [])
+
     const importNotes = useCallback(async () => {
         const ids = await window.electronAPI.importNotes()
         if (ids && ids.length > 0) {
@@ -251,6 +372,10 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
 
     const setActiveNote = useCallback((id: string | null) => {
         dispatch({ type: 'SET_ACTIVE', id })
+    }, [])
+
+    const toggleSidebar = useCallback(() => {
+        dispatch({ type: 'TOGGLE_SIDEBAR' })
     }, [])
 
     const setViewMode = useCallback((mode: ViewMode) => {
@@ -303,15 +428,20 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: 'SET_SELECTED_LABEL', labelId: id })
     }, [])
 
+    const setSelectedTag = useCallback((tag: string | null) => {
+        dispatch({ type: 'SET_SELECTED_TAG', tag })
+    }, [])
+
     const activeNote = state.notes.find(n => n.id === state.activeNoteId)
 
     const filteredNotes = state.notes.filter(note => {
         const matchesLabel = state.selectedLabelId ? note.labelId === state.selectedLabelId : true
+        const matchesTag = state.selectedTag ? note.tags?.includes(state.selectedTag) : true
         const matchesFilter = state.filterMode === 'all' || note.starred
         const matchesSearch = state.searchQuery === '' ||
             note.title.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
             note.content.toLowerCase().includes(state.searchQuery.toLowerCase())
-        return matchesLabel && matchesFilter && matchesSearch
+        return matchesLabel && matchesTag && matchesFilter && matchesSearch
     })
 
     return (
@@ -321,9 +451,11 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             filteredNotes,
             loadNotes,
             createNote,
+            openDailyNote,
             updateNote,
             deleteNote,
             toggleStar,
+            togglePin,
             importNotes,
             exportNote,
             setActiveNote,
@@ -331,13 +463,16 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             setFilter,
             setSearch,
             setSelectedLabelId,
+            setSelectedTag,
             toggleTheme,
+            toggleSidebar,
             setDeleteConfirm,
             openFolder,
             createLabel,
             updateLabel,
             deleteLabel,
-            updateNoteLabel
+            updateNoteLabel,
+            openNoteByTitle
         }}>
             {children}
         </NotesContext.Provider>
