@@ -39,7 +39,7 @@ export function Sidebar() {
                 </div>
 
                 {/* New Note + Import */}
-                <div className="flex gap-2">
+                <div className="flex gap-2" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
                     <button
                         onClick={createNote}
                         className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition-all duration-200 shadow-lg shadow-indigo-600/20 active:scale-95"
