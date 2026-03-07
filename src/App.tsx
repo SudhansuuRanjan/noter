@@ -7,8 +7,43 @@ import { CommandPalette } from './components/CommandPalette'
 import { NotesProvider, useNotes } from './context/NotesContext'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 
+function SecondaryLayout() {
+    const { state, activeNote } = useNotes()
+
+    if (!activeNote) {
+        return (
+            <div className="flex-1 flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 h-screen w-screen">
+                <p className="text-zinc-400">Loading note...</p>
+            </div>
+        )
+    }
+
+    return (
+        <div className="h-screen w-screen flex flex-col overflow-hidden bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans">
+            <header
+                className="h-10 flex-shrink-0 flex items-center justify-center border-b border-zinc-100 dark:border-zinc-800/60 bg-zinc-50/50 dark:bg-zinc-900/50 backdrop-blur-sm px-4"
+                style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
+            >
+                <div className="flex items-center gap-2">
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-400 dark:text-zinc-500">Noter</span>
+                    <span className="text-zinc-300 dark:text-zinc-700">/</span>
+                    <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 truncate max-w-[300px]">{activeNote.title}</span>
+                </div>
+            </header>
+            <div className="flex-1 overflow-hidden">
+                <Preview />
+            </div>
+        </div>
+    )
+}
+
 function AppLayout() {
     const { state, activeNote } = useNotes()
+    const mode = new URLSearchParams(window.location.search).get('mode')
+
+    if (mode === 'secondary') {
+        return <SecondaryLayout />
+    }
 
     return (
         <div className="flex h-screen w-screen overflow-hidden bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans">

@@ -51,15 +51,17 @@ function writeLabels(labels: Array<{ id: string; name: string; color: string }>)
     writeFileSync(LABELS_FILE, JSON.stringify(labels, null, 2), 'utf-8')
 }
 
-function createWindow(): void {
+function createWindow(noteId?: string): void {
+    const isSecondary = !!noteId
     const win = new BrowserWindow({
-        width: 1280,
-        height: 800,
-        minWidth: 800,
-        minHeight: 600,
+        width: isSecondary ? 800 : 1280,
+        height: isSecondary ? 600 : 800,
+        minWidth: isSecondary ? 400 : 800,
+        minHeight: isSecondary ? 300 : 600,
         backgroundColor: '#0e0e12',
         titleBarStyle: 'hiddenInset',
         trafficLightPosition: { x: 16, y: 16 },
+        autoHideMenuBar: isSecondary,
         webPreferences: {
             preload: join(__dirname, '../preload/preload.js'),
             sandbox: false,
@@ -74,10 +76,19 @@ function createWindow(): void {
         win.show()
     })
 
-    if (process.env['ELECTRON_RENDERER_URL']) {
-        win.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    let url = process.env['ELECTRON_RENDERER_URL']
+    if (url) {
+        if (isSecondary) {
+            url += `?mode=secondary&id=${noteId}`
+        }
+        win.loadURL(url)
     } else {
-        win.loadFile(join(__dirname, '../renderer/index.html'))
+        const filePath = join(__dirname, '../renderer/index.html')
+        if (isSecondary) {
+            win.loadFile(filePath, { query: { mode: 'secondary', id: noteId! } })
+        } else {
+            win.loadFile(filePath)
+        }
     }
 }
 
@@ -85,9 +96,9 @@ app.whenReady().then(() => {
     ensureNotesDir()
 
     protocol.handle('noter', (request) => {
-        const url = request.url.replace('noter://', '')
-        if (url.startsWith('attachments/')) {
-            const fileName = url.replace('attachments/', '')
+        const urlRequest = request.url.replace('noter://', '')
+        if (urlRequest.startsWith('attachments/')) {
+            const fileName = urlRequest.replace('attachments/', '')
             const filePath = join(ATTACHMENTS_DIR, fileName)
             return net.fetch('file://' + filePath)
         }
@@ -96,7 +107,7 @@ app.whenReady().then(() => {
 
     createWindow()
     app.on('activate', function () {
-        if (BrowserWindow.getAllWindows().length === 0) createWindow()
+        if (BrowserWindow.getAllWindows().filter(w => !w.isDestroyed()).length === 0) createWindow()
     })
 })
 
@@ -104,6 +115,11 @@ app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit()
     }
+})
+
+// IPC: Open In New Window
+ipcMain.handle('notes:openInNewWindow', (_event, noteId: string) => {
+    createWindow(noteId)
 })
 
 // IPC: List all notes

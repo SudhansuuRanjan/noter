@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Edit2, Eye, Columns, Download, Trash2, Star, Save, Tag, Pin, History as HistoryIcon, PanelLeft } from 'lucide-react'
+import { Edit2, Eye, Columns, Download, Trash2, Star, Save, Tag, Pin, History as HistoryIcon, PanelLeft, ExternalLink } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
 import { ViewMode } from '../types/note'
 import { HistoryModal } from './HistoryModal'
@@ -147,6 +147,14 @@ export function Toolbar() {
                     title="Export note"
                 >
                     <Download size={15} />
+                </button>
+
+                <button
+                    onClick={() => window.electronAPI.openInNewWindow(activeNote.id)}
+                    className="p-2 rounded-lg text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all duration-200"
+                    title="Open in New Window"
+                >
+                    <ExternalLink size={15} />
                 </button>
 
                 <button

@@ -40,6 +40,7 @@ export interface ElectronAPI {
     saveAttachment: (buffer: ArrayBuffer, filename: string) => Promise<string>
     getHistory: (id: string) => Promise<{ timestamp: number, preview: string, path: string }[]>
     getRevision: (path: string) => Promise<string | null>
+    openInNewWindow: (id: string) => Promise<void>
 }
 
 declare global {

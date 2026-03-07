@@ -248,7 +248,13 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
     }, [])
 
     useEffect(() => {
-        loadNotes()
+        loadNotes().then(() => {
+            const params = new URLSearchParams(window.location.search)
+            const id = params.get('id')
+            if (id) {
+                dispatch({ type: 'SET_ACTIVE', id })
+            }
+        })
     }, [loadNotes])
 
     const createNote = useCallback(async () => {
