@@ -2,7 +2,7 @@
 
 **Noter** is a modern, local-first note-taking application designed for speed, privacy, and focused writing. Built with Electron, React, Vite, and Tailwind CSS, it offers a premium, distraction-free environment for your thoughts.
 
-![Noter Icon](https://via.placeholder.com/150?text=Noter)
+![Noter Icon](./Screenshot.png)
 
 ## ✨ Premium Features
 
