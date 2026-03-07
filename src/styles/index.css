@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    * {
+        box-sizing: border-box;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    html,
+    body,
+    #root {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    /* Light mode default backgrounds */
+    html {
+        background-color: #ffffff;
+        color: #18181b;
+    }
+
+    /* Dark mode backgrounds */
+    html.dark {
+        background-color: #09090b;
+        color: #f4f4f5;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: rgba(120, 120, 140, 0.25);
+        border-radius: 999px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(120, 120, 140, 0.45);
+    }
+}
+
+/* CodeMirror height fix */
+.cm-editor,
+.cm-editor .cm-scroller {
+    height: 100% !important;
+}
+
+/* CodeMirror light mode editor background */
+.cm-editor {
+    background: #ffffff !important;
+}
+
+/* CodeMirror dark mode editor background */
+.dark .cm-editor {
+    background: #09090b !important;
+}
+
+/* Active line subtle highlight */
+.cm-editor .cm-activeLine {
+    background: rgba(0, 0, 0, 0.025) !important;
+}
+
+.dark .cm-editor .cm-activeLine {
+    background: rgba(255, 255, 255, 0.025) !important;
+}
+
+/* Focus ring suppression on CodeMirror */
+.cm-editor.cm-focused {
+    outline: none !important;
+}
+
+/* Selection color */
+::selection {
+    background: rgba(99, 102, 241, 0.25);
+}
