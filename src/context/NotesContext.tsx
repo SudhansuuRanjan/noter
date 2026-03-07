@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react'
-import { Note, ViewMode, FilterMode } from '../types/note'
+import { Note, Label, ViewMode, FilterMode } from '../types/note'
 
 interface NotesState {
     notes: Note[]
+    labels: Label[]
     activeNoteId: string | null
     viewMode: ViewMode
     filterMode: FilterMode
     searchQuery: string
+    selectedLabelId: string | null
     theme: 'dark' | 'light'
     isLoading: boolean
     isSaving: boolean
@@ -19,6 +21,7 @@ type Action =
     | { type: 'SET_VIEW_MODE'; mode: ViewMode }
     | { type: 'SET_FILTER'; filter: FilterMode }
     | { type: 'SET_SEARCH'; query: string }
+    | { type: 'SET_SELECTED_LABEL'; labelId: string | null }
     | { type: 'SET_THEME'; theme: 'dark' | 'light' }
     | { type: 'SET_LOADING'; loading: boolean }
     | { type: 'SET_SAVING'; saving: boolean }
@@ -26,12 +29,18 @@ type Action =
     | { type: 'UPDATE_NOTE'; id: string; content: string; updatedAt: string }
     | { type: 'REMOVE_NOTE'; id: string }
     | { type: 'TOGGLE_STAR'; id: string; starred: boolean }
+    | { type: 'UPDATE_NOTE_LABEL'; id: string; labelId: string | undefined }
     | { type: 'ADD_NOTE'; note: Note }
+    | { type: 'SET_LABELS'; labels: Label[] }
+    | { type: 'ADD_LABEL'; label: Label }
+    | { type: 'REMOVE_LABEL'; id: string }
 
 function notesReducer(state: NotesState, action: Action): NotesState {
     switch (action.type) {
         case 'SET_NOTES':
             return { ...state, notes: action.notes, isLoading: false }
+        case 'SET_LABELS':
+            return { ...state, labels: action.labels }
         case 'SET_ACTIVE':
             return { ...state, activeNoteId: action.id }
         case 'SET_VIEW_MODE':
@@ -40,6 +49,8 @@ function notesReducer(state: NotesState, action: Action): NotesState {
             return { ...state, filterMode: action.filter }
         case 'SET_SEARCH':
             return { ...state, searchQuery: action.query }
+        case 'SET_SELECTED_LABEL':
+            return { ...state, selectedLabelId: action.labelId }
         case 'SET_THEME':
             return { ...state, theme: action.theme }
         case 'SET_LOADING':
@@ -76,11 +87,28 @@ function notesReducer(state: NotesState, action: Action): NotesState {
                 ...state,
                 notes: state.notes.map(n => n.id === action.id ? { ...n, starred: action.starred } : n)
             }
+        case 'UPDATE_NOTE_LABEL':
+            return {
+                ...state,
+                notes: state.notes.map(n => n.id === action.id ? { ...n, labelId: action.labelId } : n)
+            }
         case 'ADD_NOTE':
             return {
                 ...state,
                 notes: [action.note, ...state.notes],
                 activeNoteId: action.note.id
+            }
+        case 'ADD_LABEL':
+            return {
+                ...state,
+                labels: [...state.labels, action.label]
+            }
+        case 'REMOVE_LABEL':
+            return {
+                ...state,
+                labels: state.labels.filter(l => l.id !== action.id),
+                selectedLabelId: state.selectedLabelId === action.id ? null : state.selectedLabelId,
+                notes: state.notes.map(n => n.labelId === action.id ? { ...n, labelId: undefined } : n)
             }
         default:
             return state
@@ -100,10 +128,12 @@ function extractPreview(content: string): string {
 
 const initialState: NotesState = {
     notes: [],
+    labels: [],
     activeNoteId: null,
     viewMode: 'split',
     filterMode: 'all',
     searchQuery: '',
+    selectedLabelId: null,
     theme: (localStorage.getItem('noter-theme') as 'dark' | 'light') || 'dark',
     isLoading: true,
     isSaving: false,
@@ -125,9 +155,13 @@ interface NotesContextValue {
     setViewMode: (mode: ViewMode) => void
     setFilter: (filter: FilterMode) => void
     setSearch: (query: string) => void
+    setSelectedLabelId: (id: string | null) => void
     toggleTheme: () => void
     setDeleteConfirm: (id: string | null) => void
     openFolder: () => void
+    createLabel: (name: string, color: string) => Promise<void>
+    deleteLabel: (id: string) => Promise<void>
+    updateNoteLabel: (id: string, labelId: string | undefined) => Promise<void>
 }
 
 const NotesContext = createContext<NotesContextValue | null>(null)
@@ -155,6 +189,8 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: 'SET_LOADING', loading: true })
         const notes = await window.electronAPI.listNotes()
         dispatch({ type: 'SET_NOTES', notes })
+        const labels = await window.electronAPI.listLabels()
+        dispatch({ type: 'SET_LABELS', labels })
     }, [])
 
     useEffect(() => {
@@ -234,14 +270,34 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
         window.electronAPI.openFolder()
     }, [])
 
+    const createLabel = useCallback(async (name: string, color: string) => {
+        const label = await window.electronAPI.createLabel(name, color)
+        dispatch({ type: 'ADD_LABEL', label })
+    }, [])
+
+    const deleteLabel = useCallback(async (id: string) => {
+        await window.electronAPI.deleteLabel(id)
+        dispatch({ type: 'REMOVE_LABEL', id })
+    }, [])
+
+    const updateNoteLabel = useCallback(async (id: string, labelId: string | undefined) => {
+        await window.electronAPI.updateNoteLabel(id, labelId)
+        dispatch({ type: 'UPDATE_NOTE_LABEL', id, labelId })
+    }, [])
+
+    const setSelectedLabelId = useCallback((id: string | null) => {
+        dispatch({ type: 'SET_SELECTED_LABEL', labelId: id })
+    }, [])
+
     const activeNote = state.notes.find(n => n.id === state.activeNoteId)
 
     const filteredNotes = state.notes.filter(note => {
+        const matchesLabel = state.selectedLabelId ? note.labelId === state.selectedLabelId : true
         const matchesFilter = state.filterMode === 'all' || note.starred
         const matchesSearch = state.searchQuery === '' ||
             note.title.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
             note.content.toLowerCase().includes(state.searchQuery.toLowerCase())
-        return matchesFilter && matchesSearch
+        return matchesLabel && matchesFilter && matchesSearch
     })
 
     return (
@@ -260,9 +316,13 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             setViewMode,
             setFilter,
             setSearch,
+            setSelectedLabelId,
             toggleTheme,
             setDeleteConfirm,
-            openFolder
+            openFolder,
+            createLabel,
+            deleteLabel,
+            updateNoteLabel
         }}>
             {children}
         </NotesContext.Provider>

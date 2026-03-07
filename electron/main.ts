@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 const NOTES_DIR = join(homedir(), 'Notes', 'noter')
 const META_FILE = join(NOTES_DIR, '.meta.json')
+const LABELS_FILE = join(NOTES_DIR, '.labels.json')
 
 // Ensure notes directory exists
 function ensureNotesDir() {
@@ -15,7 +16,7 @@ function ensureNotesDir() {
 }
 
 // Read metadata
-function readMeta(): Record<string, { starred: boolean; createdAt: string; updatedAt: string }> {
+function readMeta(): Record<string, { starred: boolean; labelId?: string; createdAt: string; updatedAt: string }> {
     try {
         if (existsSync(META_FILE)) {
             return JSON.parse(readFileSync(META_FILE, 'utf-8'))
@@ -27,8 +28,25 @@ function readMeta(): Record<string, { starred: boolean; createdAt: string; updat
 }
 
 // Write metadata
-function writeMeta(meta: Record<string, { starred: boolean; createdAt: string; updatedAt: string }>) {
+function writeMeta(meta: Record<string, { starred: boolean; labelId?: string; createdAt: string; updatedAt: string }>) {
     writeFileSync(META_FILE, JSON.stringify(meta, null, 2), 'utf-8')
+}
+
+// Read labels
+function readLabels(): Array<{ id: string; name: string; color: string }> {
+    try {
+        if (existsSync(LABELS_FILE)) {
+            return JSON.parse(readFileSync(LABELS_FILE, 'utf-8'))
+        }
+    } catch {
+        // ignore
+    }
+    return []
+}
+
+// Write labels
+function writeLabels(labels: Array<{ id: string; name: string; color: string }>) {
+    writeFileSync(LABELS_FILE, JSON.stringify(labels, null, 2), 'utf-8')
 }
 
 function createWindow(): void {
@@ -92,7 +110,8 @@ ipcMain.handle('notes:list', () => {
         const metaEntry = meta[id] || {
             starred: false,
             createdAt: fileStat.birthtime.toISOString(),
-            updatedAt: fileStat.mtime.toISOString()
+            updatedAt: fileStat.mtime.toISOString(),
+            labelId: undefined
         }
 
         return {
@@ -101,6 +120,7 @@ ipcMain.handle('notes:list', () => {
             preview,
             content,
             starred: metaEntry.starred,
+            labelId: metaEntry.labelId,
             createdAt: metaEntry.createdAt,
             updatedAt: metaEntry.updatedAt,
             filePath
@@ -174,6 +194,18 @@ ipcMain.handle('notes:star', (_event, id: string) => {
     return meta[id].starred
 })
 
+// IPC: Update Note Label
+ipcMain.handle('notes:updateLabel', (_event, { id, labelId }: { id: string; labelId: string | undefined }) => {
+    const meta = readMeta()
+    if (meta[id]) {
+        meta[id].labelId = labelId
+    } else {
+        meta[id] = { starred: false, labelId, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+    }
+    writeMeta(meta)
+    return true
+})
+
 // IPC: Import note
 ipcMain.handle('notes:import', async () => {
     const result = await dialog.showOpenDialog({
@@ -216,4 +248,38 @@ ipcMain.handle('notes:export', async (_event, { id, title }: { id: string; title
 // IPC: Open notes folder
 ipcMain.handle('notes:openFolder', () => {
     shell.openPath(NOTES_DIR)
+})
+
+// IPC: Label Management
+ipcMain.handle('labels:list', () => {
+    ensureNotesDir()
+    return readLabels()
+})
+
+ipcMain.handle('labels:create', (_event, { name, color }: { name: string; color: string }) => {
+    ensureNotesDir()
+    const labels = readLabels()
+    const newLabel = { id: uuidv4(), name, color }
+    labels.push(newLabel)
+    writeLabels(labels)
+    return newLabel
+})
+
+ipcMain.handle('labels:delete', (_event, id: string) => {
+    let labels = readLabels()
+    labels = labels.filter(l => l.id !== id)
+    writeLabels(labels)
+
+    // Detach label from notes that used it
+    const meta = readMeta()
+    let changed = false
+    for (const noteId in meta) {
+        if (meta[noteId].labelId === id) {
+            meta[noteId].labelId = undefined
+            changed = true
+        }
+    }
+    if (changed) writeMeta(meta)
+
+    return true
 })

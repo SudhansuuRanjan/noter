@@ -14,7 +14,7 @@ function formatDate(dateStr: string) {
     const days = Math.floor(diff / (1000 * 60 * 60 * 24))
 
     if (days === 0) {
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
     } else if (days === 1) {
         return 'Yesterday'
     } else if (days < 7) {
@@ -25,7 +25,9 @@ function formatDate(dateStr: string) {
 }
 
 export function NoteCard({ note, isActive }: NoteCardProps) {
-    const { setActiveNote, toggleStar, setDeleteConfirm } = useNotes()
+    const { state, setActiveNote, toggleStar, setDeleteConfirm } = useNotes()
+
+    const label = note.labelId ? state.labels.find(l => l.id === note.labelId) : null
 
     return (
         <div
@@ -45,8 +47,8 @@ export function NoteCard({ note, isActive }: NoteCardProps) {
                             <Star size={11} className="text-amber-500 fill-amber-500 flex-shrink-0" />
                         )}
                         <h3 className={`text-sm font-medium truncate ${isActive
-                                ? 'text-indigo-700 dark:text-zinc-50'
-                                : 'text-zinc-800 dark:text-zinc-200'
+                            ? 'text-indigo-700 dark:text-zinc-50'
+                            : 'text-zinc-800 dark:text-zinc-200'
                             }`}>
                             {note.title}
                         </h3>
@@ -54,9 +56,23 @@ export function NoteCard({ note, isActive }: NoteCardProps) {
                     <p className="text-xs text-zinc-500 dark:text-zinc-500 truncate leading-relaxed">
                         {note.preview || 'Empty note'}
                     </p>
-                    <p className="text-xs text-zinc-400 dark:text-zinc-600 mt-1">
-                        {formatDate(note.updatedAt)}
-                    </p>
+                    <div className="flex items-center justify-between mt-1">
+                        <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium tracking-wide">
+                            {formatDate(note.updatedAt)}
+                        </p>
+                        {label && (
+                            <div
+                                className="px-1.5 py-0.5 rounded text-[9px] font-medium border"
+                                style={{
+                                    backgroundColor: `${label.color}15`,
+                                    color: label.color,
+                                    borderColor: `${label.color}30`
+                                }}
+                            >
+                                {label.name}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <div className={`flex items-center gap-0.5 flex-shrink-0 transition-opacity duration-150 ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'

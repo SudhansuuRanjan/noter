@@ -1,5 +1,5 @@
-import React from 'react'
-import { Edit2, Eye, Columns, Download, Trash2, Star, Save } from 'lucide-react'
+import React, { useState, useRef, useEffect } from 'react'
+import { Edit2, Eye, Columns, Download, Trash2, Star, Save, Tag } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
 import { ViewMode } from '../types/note'
 
@@ -10,7 +10,19 @@ const viewModes: { mode: ViewMode; icon: React.ReactNode; label: string }[] = [
 ]
 
 export function Toolbar() {
-    const { state, activeNote, setViewMode, toggleStar, exportNote, setDeleteConfirm } = useNotes()
+    const { state, activeNote, setViewMode, toggleStar, exportNote, setDeleteConfirm, updateNoteLabel } = useNotes()
+    const [isLabelMenuOpen, setIsLabelMenuOpen] = useState(false)
+    const labelMenuRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (labelMenuRef.current && !labelMenuRef.current.contains(event.target as Node)) {
+                setIsLabelMenuOpen(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
 
     if (!activeNote) return null
 
@@ -48,6 +60,48 @@ export function Toolbar() {
 
             {/* Right: Actions */}
             <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+                <div className="relative" ref={labelMenuRef}>
+                    <button
+                        onClick={() => setIsLabelMenuOpen(!isLabelMenuOpen)}
+                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${activeNote.labelId
+                            ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                            : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-300'
+                            }`}
+                        title="Assign Label"
+                    >
+                        <Tag size={13} className={activeNote.labelId ? 'text-indigo-500 dark:text-indigo-400' : ''} />
+                    </button>
+
+                    {isLabelMenuOpen && (
+                        <div className="absolute top-full right-0 mt-1 max-w-[200px] w-48 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 py-1.5 z-50 overflow-hidden">
+                            <div className="px-3 py-1.5 mb-1 border-b border-zinc-100 dark:border-zinc-800/60">
+                                <span className="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Assign Label</span>
+                            </div>
+                            <div className="max-h-60 overflow-y-auto">
+                                <button
+                                    onClick={() => { updateNoteLabel(activeNote.id, undefined); setIsLabelMenuOpen(false) }}
+                                    className={`w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 ${!activeNote.labelId ? 'bg-zinc-50 dark:bg-zinc-800/30' : ''}`}
+                                >
+                                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-200 dark:bg-zinc-700" />
+                                    <span className="text-zinc-600 dark:text-zinc-400">None</span>
+                                </button>
+                                {state.labels.map(label => (
+                                    <button
+                                        key={label.id}
+                                        onClick={() => { updateNoteLabel(activeNote.id, label.id); setIsLabelMenuOpen(false) }}
+                                        className={`w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 ${activeNote.labelId === label.id ? 'bg-zinc-50 dark:bg-zinc-800/30 font-medium' : ''}`}
+                                    >
+                                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: label.color }} />
+                                        <span className="text-zinc-700 dark:text-zinc-300 truncate">{label.name}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className="w-px h-5 bg-zinc-200 dark:bg-zinc-700/50 mx-1" />
+
                 <button
                     onClick={() => toggleStar(activeNote.id)}
                     className={`p-2 rounded-lg transition-all duration-200 ${activeNote.starred
