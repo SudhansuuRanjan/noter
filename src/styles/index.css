@@ -168,29 +168,30 @@
 /* Print & PDF Styles */
 @media print {
 
-    /* Hide layout wrappers and UI elements */
-    #sidebar-panel,
-    [data-panel-id="sidebar-panel"],
-    [data-panel-resize-handle-id],
-    header,
-    .no-print,
-    button,
-    .ai-assistant-trigger {
+    /* Hide layout wrappers and UI elements - high specificity */
+    html body #sidebar-panel,
+    html body [data-panel-id="sidebar-panel"],
+    html body [data-panel-resize-handle-id],
+    html body header,
+    html body .no-print,
+    html body button,
+    html body .ai-assistant-trigger {
         display: none !important;
     }
 
     /* Target the toolbar based on its layout */
-    #main-panel>div>div:first-child {
+    html body #main-panel>div>div:first-child {
         display: none !important;
     }
 
-    /* Override flex behavior from react-resizable-panels */
-    #main-panel,
-    [data-panel-id="main-panel"],
-    .flex,
-    .flex-col,
-    .PanelGroup,
-    .Panel {
+    /* Override flex behavior from react-resizable-panels for layout flattening */
+    html body #main-panel,
+    html body [data-panel-id="main-panel"],
+    html body .flex,
+    html body .flex-col,
+    html body .PanelGroup,
+    html body .Panel,
+    html body .flex-1 {
         display: block !important;
         flex: none !important;
         height: auto !important;
@@ -201,28 +202,23 @@
         transform: none !important;
     }
 
-    /* If the viewMode is "split" or "edit", the editor panel might still be visible. We only want to print the Preview panel. */
-    #main-panel .cm-editor {
+    /* Hide editor if in split mode */
+    html body #main-panel .cm-editor {
         display: none !important;
     }
 
-    body,
+    /* Force Light Mode Paper constraints */
     html,
+    body,
     #root {
         height: auto !important;
-        background: white !important;
-        color: black !important;
+        background: #ffffff !important;
+        color: #000000 !important;
         overflow: visible !important;
     }
 
-    .flex-1 {
-        display: block !important;
-        width: 100% !important;
-        height: auto !important;
-        overflow: visible !important;
-    }
-
-    .max-w-4xl {
+    /* Reset Tailwind preview max-widths to allow native Electron PDF margins */
+    html body .max-w-4xl {
         max-width: 100% !important;
         padding: 0 !important;
         margin: 0 !important;
@@ -232,30 +228,58 @@
     .prose {
         font-size: 11pt !important;
         line-height: 1.6 !important;
-        color: #111 !important;
+        color: #000000 !important;
         max-width: 100% !important;
+        background: #ffffff !important;
     }
 
-    pre,
-    blockquote {
+    /* Override all dark mode text colors in the preview to standard black */
+    .prose p,
+    .prose h1,
+    .prose h2,
+    .prose h3,
+    .prose h4,
+    .prose li,
+    .prose strong,
+    .prose th,
+    .prose td {
+        color: #000000 !important;
+    }
+
+    /* Restyle Code block backgrounds to readable light-gray */
+    .prose pre {
         page-break-inside: avoid;
-        border: 1px solid #ddd !important;
+        border: 1px solid #e4e4e7 !important;
+        background-color: #fafafa !important;
     }
 
-    h1,
-    h2,
-    h3 {
-        page-break-after: avoid;
-        color: #000 !important;
+    /* Inline codes */
+    .prose code {
+        background-color: #f4f4f5 !important;
+        color: #4f46e5 !important;
+        /* Indigo for inline code */
     }
 
-    a {
+    /* Anchor tags */
+    .prose a {
         text-decoration: none !important;
-        color: #000 !important;
+        color: #111111 !important;
     }
 
-    /* Force background colors to print for code blocks */
-    * {
+    /* Quotes */
+    .prose blockquote {
+        page-break-inside: avoid;
+        border-left: 4px solid #4f46e5 !important;
+        background-color: #f8fafc !important;
+        color: #333333 !important;
+    }
+
+    /* Enable background printing explicitly ONLY for code highlighting elements */
+    .prose pre,
+    .prose code,
+    .prose blockquote,
+    .cm-math,
+    .prose th {
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }

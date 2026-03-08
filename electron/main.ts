@@ -376,8 +376,7 @@ ipcMain.handle('notes:exportPDF', async (event, { id, title }: { id: string; tit
     try {
         const data = await win.webContents.printToPDF({
             printBackground: true,
-            pageSize: 'A4',
-            marginsType: 1
+            pageSize: 'A4'
         })
         writeFileSync(result.filePath, data)
         shell.showItemInFolder(result.filePath)

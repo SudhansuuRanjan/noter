@@ -292,10 +292,17 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             filePath: ''
         }
         dispatch({ type: 'ADD_NOTE', note })
+        dispatch({ type: 'SET_VIEW_MODE', mode: 'edit' })
     }, [])
 
     const openDailyNote = useCallback(async () => {
-        const todayString = new Date().toISOString().split('T')[0]
+        const date = new Date()
+        const day = date.getDate()
+        const monthMatch = date.toLocaleString('en-IN', { month: 'short' })
+        const yearMatch = date.getFullYear()
+        const weekdayMatch = date.toLocaleString('en-IN', { weekday: 'short' })
+
+        const todayString = `${day} ${monthMatch}, ${yearMatch} (${weekdayMatch})`
         const existingNote = state.notes.find(n => n.title === todayString)
 
         // Ensure "Journal" label exists
@@ -312,6 +319,7 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
                 await window.electronAPI.updateNoteLabel(existingNote.id, journalLabel.id)
                 dispatch({ type: 'UPDATE_NOTE_LABEL', id: existingNote.id, labelId: journalLabel.id })
             }
+            dispatch({ type: 'SET_VIEW_MODE', mode: 'edit' })
         } else {
             const result = await window.electronAPI.createNote()
             const content = `# ${todayString}\n\n`
@@ -331,6 +339,7 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             }
             dispatch({ type: 'ADD_NOTE', note })
             dispatch({ type: 'SET_ACTIVE', id: note.id })
+            dispatch({ type: 'SET_VIEW_MODE', mode: 'edit' })
         }
     }, [state.notes, state.labels])
 
