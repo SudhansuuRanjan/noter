@@ -1,4 +1,5 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+
 import { Sidebar } from './components/Sidebar'
 import { Editor } from './components/Editor'
 import { Preview } from './components/Preview'
@@ -40,6 +41,13 @@ function SecondaryLayout() {
 
 function AppLayout() {
     const { state, activeNote, createNote } = useNotes()
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth)
+
+    useEffect(() => {
+        const handleResize = () => setWindowWidth(window.innerWidth)
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
 
     // Global hotkeys
     useEffect(() => {
@@ -60,14 +68,21 @@ function AppLayout() {
         return <SecondaryLayout />
     }
 
+    // Calculate responsive sizes
+    // We want the sidebar to be approx ~260px minimum and ~400px maximum
+    // But we also need to respect total window width to avoid taking too much space on very small windows
+    const minSizePercent = Math.max(22, Math.min(40, (260 / windowWidth) * 100))
+    const maxSizePercent = Math.max(30, Math.min(60, (400 / windowWidth) * 100))
+    const defaultSizePercent = Math.max(minSizePercent, Math.min(maxSizePercent, (300 / windowWidth) * 100))
+
     return (
         <div className="flex h-screen w-screen overflow-hidden bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans">
             <PanelGroup direction="horizontal">
                 {state.isSidebarOpen && (
                     <Panel
-                        defaultSize={25}
-                        minSize={15}
-                        maxSize={40}
+                        defaultSize={defaultSizePercent}
+                        minSize={minSizePercent}
+                        maxSize={maxSizePercent}
                         order={1}
                         id="sidebar-panel"
                         key="sidebar"

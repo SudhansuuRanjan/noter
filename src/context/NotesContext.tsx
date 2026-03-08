@@ -9,7 +9,7 @@ interface NotesState {
     filterMode: FilterMode
     searchQuery: string
     selectedLabelId: string | null
-    selectedTag: string | null
+    selectedTags: string[]
     theme: 'dark' | 'light'
     isLoading: boolean
     isSaving: boolean
@@ -27,7 +27,8 @@ type Action =
     | { type: 'SET_FILTER'; filter: FilterMode }
     | { type: 'SET_SEARCH'; query: string }
     | { type: 'SET_SELECTED_LABEL'; labelId: string | null }
-    | { type: 'SET_SELECTED_TAG'; tag: string | null }
+    | { type: 'TOGGLE_SELECTED_TAG'; tag: string }
+    | { type: 'CLEAR_SELECTED_TAGS' }
     | { type: 'SET_THEME'; theme: 'dark' | 'light' }
     | { type: 'SET_LOADING'; loading: boolean }
     | { type: 'SET_SAVING'; saving: boolean }
@@ -71,8 +72,14 @@ function notesReducer(state: NotesState, action: Action): NotesState {
             return { ...state, searchQuery: action.query }
         case 'SET_SELECTED_LABEL':
             return { ...state, selectedLabelId: action.labelId }
-        case 'SET_SELECTED_TAG':
-            return { ...state, selectedTag: action.tag }
+        case 'TOGGLE_SELECTED_TAG': {
+            const tags = state.selectedTags.includes(action.tag)
+                ? state.selectedTags.filter(t => t !== action.tag)
+                : [...state.selectedTags, action.tag]
+            return { ...state, selectedTags: tags }
+        }
+        case 'CLEAR_SELECTED_TAGS':
+            return { ...state, selectedTags: [] }
         case 'SET_THEME':
             return { ...state, theme: action.theme }
         case 'SET_LOADING':
@@ -192,7 +199,7 @@ const initialState: NotesState = {
     filterMode: 'all',
     searchQuery: '',
     selectedLabelId: null,
-    selectedTag: null,
+    selectedTags: [],
     theme: (localStorage.getItem('noter-theme') as 'dark' | 'light') || 'dark',
     isLoading: true,
     isSaving: false,
@@ -221,7 +228,8 @@ interface NotesContextValue {
     setFilter: (filter: FilterMode) => void
     setSearch: (query: string) => void
     setSelectedLabelId: (id: string | null) => void
-    setSelectedTag: (tag: string | null) => void
+    toggleTag: (tag: string) => void
+    clearTags: () => void
     toggleTheme: () => void
     toggleSidebar: () => void
     setDeleteConfirm: (id: string | null) => void
@@ -485,8 +493,11 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: 'SET_SELECTED_LABEL', labelId: id })
     }, [])
 
-    const setSelectedTag = useCallback((tag: string | null) => {
-        dispatch({ type: 'SET_SELECTED_TAG', tag })
+    const toggleTag = useCallback((tag: string) => {
+        dispatch({ type: 'TOGGLE_SELECTED_TAG', tag })
+    }, [])
+    const clearTags = useCallback(() => {
+        dispatch({ type: 'CLEAR_SELECTED_TAGS' })
     }, [])
 
     const setSortBy = useCallback((sortBy: 'title' | 'createdAt' | 'updatedAt') => {
@@ -506,12 +517,14 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
     const sortedNotes = React.useMemo(() => {
         const filtered = state.notes.filter(note => {
             const matchesLabel = state.selectedLabelId ? note.labelId === state.selectedLabelId : true
-            const matchesTag = state.selectedTag ? note.tags?.includes(state.selectedTag) : true
+            const matchesTags = state.selectedTags.length > 0
+                ? state.selectedTags.every(tag => note.tags?.includes(tag))
+                : true
             const matchesFilter = state.filterMode === 'all' || note.starred
             const matchesSearch = state.searchQuery === '' ||
                 note.title.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
                 note.content.toLowerCase().includes(state.searchQuery.toLowerCase())
-            return matchesLabel && matchesTag && matchesFilter && matchesSearch
+            return matchesLabel && matchesTags && matchesFilter && matchesSearch
         })
 
         return [...filtered].sort((a, b) => {
@@ -530,7 +543,7 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
 
             return state.sortOrder === 'desc' ? -comparison : comparison
         })
-    }, [state.notes, state.selectedLabelId, state.selectedTag, state.filterMode, state.searchQuery, state.sortBy, state.sortOrder])
+    }, [state.notes, state.selectedLabelId, state.selectedTags, state.filterMode, state.searchQuery, state.sortBy, state.sortOrder])
 
     return (
         <NotesContext.Provider value={{
@@ -551,7 +564,8 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             setFilter,
             setSearch,
             setSelectedLabelId,
-            setSelectedTag,
+            toggleTag,
+            clearTags,
             toggleTheme,
             toggleSidebar,
             setDeleteConfirm,

@@ -16,12 +16,12 @@ export function Sidebar() {
         setFilter,
         setSearch,
         setSelectedLabelId,
-        openFolder,
+        toggleTag,
+        clearTags,
         openDailyNote,
         createLabel,
         updateLabel,
         deleteLabel,
-        setSelectedTag,
         setSortBy,
         setSortOrder
     } = useNotes()
@@ -183,8 +183,8 @@ export function Sidebar() {
                         className="bg-transparent text-[11px] text-zinc-500 dark:text-zinc-400 border-none outline-none cursor-pointer hover:text-indigo-500 transition-colors"
                         title="Sort by"
                     >
-                        <option value="updatedAt">Date Updated</option>
-                        <option value="createdAt">Date Created</option>
+                        <option value="updatedAt">Updated</option>
+                        <option value="createdAt">Created</option>
                         <option value="title">Name</option>
                     </select>
                     <button
@@ -309,15 +309,32 @@ export function Sidebar() {
                     >
                         {isTagsExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                         Tags
+                        {state.selectedTags.length > 0 && (
+                            <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-[10px] text-indigo-600 dark:text-indigo-400">
+                                {state.selectedTags.length}
+                            </span>
+                        )}
                     </button>
+                    {state.selectedTags.length > 0 && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                clearTags()
+                            }}
+                            className="p-1 rounded text-zinc-400 hover:text-red-500 transition-colors"
+                            title="Clear all tags"
+                        >
+                            <X size={12} />
+                        </button>
+                    )}
                 </div>
                 {isTagsExpanded && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
                         {allTags.map(tag => (
                             <button
                                 key={tag}
-                                onClick={() => setSelectedTag(state.selectedTag === tag ? null : tag)}
-                                className={`px-2 py-1 rounded-md text-[11px] font-medium transition-colors ${state.selectedTag === tag ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300' : 'bg-zinc-200/50 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'}`}
+                                onClick={() => toggleTag(tag)}
+                                className={`px-2 py-1 rounded-md text-[11px] font-medium transition-colors ${state.selectedTags.includes(tag) ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 ring-1 ring-indigo-200 dark:ring-indigo-500/30' : 'bg-zinc-200/50 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'}`}
                             >
                                 {tag}
                             </button>
