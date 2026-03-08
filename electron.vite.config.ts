@@ -32,9 +32,6 @@ export default defineConfig({
             if (id.includes('node_modules/highlight.js') || id.includes('node_modules/lowlight') || id.includes('node_modules/rehype-highlight')) {
               return 'highlight';
             }
-            if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
-              return 'react';
-            }
             if (id.includes('node_modules')) {
               return 'vendor';
             }
