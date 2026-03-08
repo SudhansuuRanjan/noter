@@ -9,7 +9,9 @@
     "preview": "electron-vite preview",
     "postinstall": "electron-builder install-app-deps",
     "build:win": "npm run build && electron-builder --win",
-    "build:mac": "electron-vite build && electron-builder --mac"
+    "build:mac": "npm run build && electron-builder --mac",
+    "publish:mac": "npm run build:mac -- -p always",
+    "publish:win": "npm run build:win -- -p always"
   },
   "keywords": [],
   "author": "",
