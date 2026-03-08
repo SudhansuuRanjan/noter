@@ -4,7 +4,7 @@ import remarkMath from 'remark-math'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeKatex from 'rehype-katex'
 import mermaid from 'mermaid'
-import { ExternalLink, X } from 'lucide-react'
+import { ExternalLink, X, Copy, Check } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
 import { useEffect, useRef, useState } from 'react'
 
@@ -15,6 +15,28 @@ mermaid.initialize({
     securityLevel: 'loose',
     fontFamily: 'inherit'
 })
+
+const CopyButton = ({ text }: { text: string }) => {
+    const [copied, setCopied] = useState(false)
+
+    const handleCopy = (e: React.MouseEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        navigator.clipboard.writeText(text)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+    }
+
+    return (
+        <button
+            onClick={handleCopy}
+            className="absolute top-2 right-2 p-1.5 rounded-lg bg-zinc-200/80 dark:bg-zinc-800/90 text-zinc-600 dark:text-zinc-400 opacity-0 group-hover:opacity-100 transition-all hover:bg-zinc-300 dark:hover:bg-zinc-700 dark:border dark:border-zinc-700 z-10 shadow-sm"
+            title="Copy code"
+        >
+            {copied ? <Check size={14} className="text-green-600 dark:text-green-400" /> : <Copy size={14} />}
+        </button>
+    )
+}
 
 const MermaidRenderer = ({ content }: { content: string }) => {
     const containerRef = useRef<HTMLDivElement>(null)
@@ -65,7 +87,10 @@ export function Preview() {
           prose-blockquote:border-l-indigo-400 prose-blockquote:bg-indigo-50 dark:prose-blockquote:bg-indigo-600/5 prose-blockquote:rounded-r-xl prose-blockquote:py-0.5
           prose-hr:border-zinc-200 dark:prose-hr:border-zinc-700/50
           prose-img:rounded-xl prose-img:border prose-img:border-zinc-200 dark:prose-img:border-zinc-700/30
-          prose-th:bg-zinc-50 dark:prose-th:bg-zinc-800/40
+          prose-table:w-full prose-table:my-6 prose-table:border prose-table:border-zinc-200 dark:prose-table:border-zinc-800/60 prose-table:rounded-xl prose-table:overflow-hidden prose-table:shadow-sm
+          prose-th:bg-zinc-50 dark:prose-th:bg-zinc-800/40 prose-th:px-4 prose-th:py-3 prose-th:text-left prose-th:font-semibold prose-th:border-b prose-th:border-zinc-200 dark:prose-th:border-zinc-800/60
+          prose-td:px-4 prose-td:py-3 prose-td:border-b prose-td:border-zinc-100 dark:prose-td:border-zinc-800/40
+          prose-tr:hover:bg-zinc-50/80 dark:prose-tr:hover:bg-zinc-800/30 prose-tr:transition-colors prose-tr:border-none
         ">
                     <ReactMarkdown
                         urlTransform={(value: string) => value}
@@ -79,6 +104,27 @@ export function Preview() {
                             }]
                         ]}
                         components={{
+                            pre({ node, children, ...props }) {
+                                const getTextContext = (element: any): string => {
+                                    if (!element) return ''
+                                    if (element.type === 'text') return element.value || ''
+                                    if (element.children) {
+                                        const childrenArr = Array.isArray(element.children) ? element.children : [element.children]
+                                        return childrenArr.map(getTextContext).join('')
+                                    }
+                                    return ''
+                                }
+                                const codeString = getTextContext(node).replace(/\n$/, '')
+
+                                return (
+                                    <div className="relative group mt-5 mb-4">
+                                        <CopyButton text={codeString} />
+                                        <pre {...props} className="m-0 border border-zinc-200 dark:border-zinc-700/50 rounded-xl overflow-x-auto">
+                                            {children}
+                                        </pre>
+                                    </div>
+                                )
+                            },
                             code({ node, className, children, ...props }) {
                                 const match = /language-(\w+)/.exec(className || '')
                                 const isInline = !match

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Sidebar } from './components/Sidebar'
 import { Editor } from './components/Editor'
 import { Preview } from './components/Preview'
@@ -38,7 +39,19 @@ function SecondaryLayout() {
 }
 
 function AppLayout() {
-    const { state, activeNote } = useNotes()
+    const { state, activeNote, createNote } = useNotes()
+
+    // Global hotkeys
+    useEffect(() => {
+        const handleGlobalKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'n') {
+                e.preventDefault()
+                createNote()
+            }
+        }
+        window.addEventListener('keydown', handleGlobalKeyDown)
+        return () => window.removeEventListener('keydown', handleGlobalKeyDown)
+    }, [createNote])
 
     // Robust detection for Electron/Vite
     const mode = window.electronAPI.windowArgs.mode
