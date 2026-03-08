@@ -1,11 +1,10 @@
 import React, { useState } from 'react'
-import { Search, Plus, Star, FileText, FolderOpen, Tag, X, ChevronRight, ChevronDown, Edit2, Check, Calendar, HelpCircle, ArrowUpDown, SortAsc, SortDesc, Sparkles, Settings } from 'lucide-react'
+import { Search, Plus, Star, FileText, X, ChevronRight, ChevronDown, Edit2, Check, Calendar, HelpCircle, ArrowUpDown, SortAsc, SortDesc, Sparkles, Settings, FileEdit } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
 import { NoteCard } from './NoteCard'
 import { ThemeToggle } from './ThemeToggle'
 import { HelpModal } from './HelpModal'
 import { AISettings } from './AISettings'
-import { AICommand } from './AICommand'
 import { useEffect } from 'react'
 
 export function Sidebar() {
@@ -115,8 +114,8 @@ export function Sidebar() {
                         className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition-all duration-200 shadow-lg shadow-indigo-600/20 active:scale-95"
                         title="Create regular note"
                     >
-                        <Plus size={14} />
-                        New
+                        <FileEdit size={14} />
+                        New Note
                     </button>
                     <button
                         onClick={openDailyNote}
@@ -171,7 +170,7 @@ export function Sidebar() {
                             {f === 'starred' && <Star size={11} className={state.filterMode === 'starred' ? 'fill-amber-500 text-amber-500' : ''} />}
                             {f === 'all' ? 'All' : 'Starred'}
                             {f === 'all' && (
-                                <span className="ml-1 text-xs text-zinc-400 dark:text-zinc-600">{state.notes.length}</span>
+                                <span className={`ml-1 text-xs ${state.filterMode === f ? 'text-indigo-600 dark:text-indigo-300' : 'text-zinc-500 dark:text-zinc-500'}`}>{state.notes.length}</span>
                             )}
                         </button>
                     ))}

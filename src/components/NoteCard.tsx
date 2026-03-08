@@ -50,7 +50,7 @@ export function NoteCard({ note, isActive }: NoteCardProps) {
                             <Star size={11} className="text-amber-500 fill-amber-500 flex-shrink-0" />
                         )}
                         <h3 className={`text-sm font-medium truncate ${isActive
-                            ? 'text-indigo-700 dark:text-zinc-50'
+                            ? 'text-indigo-700 dark:text-indigo-400'
                             : 'text-zinc-800 dark:text-zinc-200'
                             }`}>
                             {note.title}

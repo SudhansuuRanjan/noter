@@ -47,7 +47,7 @@ export function Toolbar() {
     if (!activeNote) return null
 
     return (
-        <div className={`h-11 flex-shrink-0 flex items-center justify-between pr-4 border-b border-zinc-200 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-900/40 backdrop-blur-sm transition-all duration-200 relative z-30 ${!state.isSidebarOpen ? 'pl-20' : 'pl-4'}`} style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
+        <div className={`h-11 gap-1 flex-shrink-0 flex items-center justify-between pr-4 border-b border-zinc-200 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-900/40 backdrop-blur-sm transition-all duration-200 relative z-30 ${!state.isSidebarOpen ? 'pl-20' : 'pl-4'}`} style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
             {/* Left: Note title + save indicator */}
             <div className="flex items-center gap-3 min-w-0" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
                 <button
@@ -69,25 +69,25 @@ export function Toolbar() {
                 )}
             </div>
 
-            {/* Center: View mode toggle */}
-            <div className="flex items-center gap-0.5 bg-zinc-100 dark:bg-zinc-800/60 rounded-lg p-0.5 border border-zinc-200 dark:border-zinc-700/40" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-                {viewModes.map(({ mode, icon, label }) => (
-                    <button
-                        key={mode}
-                        onClick={() => setViewMode(mode)}
-                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all duration-150 ${state.viewMode === mode
-                            ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm'
-                            : 'text-zinc-500 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
-                            }`}
-                    >
-                        {icon}
-                        {label}
-                    </button>
-                ))}
-            </div>
-
             {/* Right: Actions */}
             <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+                {/* Center: View mode toggle */}
+                <div className="flex items-center gap-0.5 bg-zinc-100 dark:bg-zinc-800/60 rounded-lg p-0.5 border border-zinc-200 dark:border-zinc-700/40" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+                    {viewModes.map(({ mode, icon, label }) => (
+                        <button
+                            key={mode}
+                            onClick={() => setViewMode(mode)}
+                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all duration-150 ${state.viewMode === mode
+                                ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                                : 'text-zinc-500 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                                }`}
+                        >
+                            {icon}
+                            {label}
+                        </button>
+                    ))}
+                </div>
+
                 <div className="relative" ref={labelMenuRef}>
                     <button
                         onClick={() => setIsLabelMenuOpen(!isLabelMenuOpen)}

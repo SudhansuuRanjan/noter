@@ -17,6 +17,7 @@ interface NotesState {
     isSidebarOpen: boolean
     sortBy: 'title' | 'createdAt' | 'updatedAt'
     sortOrder: 'asc' | 'desc'
+    accentColor: string
 }
 
 type Action =
@@ -44,6 +45,7 @@ type Action =
     | { type: 'REMOVE_LABEL'; id: string }
     | { type: 'SET_SORT_BY'; sortBy: 'title' | 'createdAt' | 'updatedAt' }
     | { type: 'SET_SORT_ORDER'; sortOrder: 'asc' | 'desc' }
+    | { type: 'SET_ACCENT_COLOR'; color: string }
 
 function notesReducer(state: NotesState, action: Action): NotesState {
     switch (action.type) {
@@ -164,6 +166,8 @@ function notesReducer(state: NotesState, action: Action): NotesState {
             return { ...state, sortBy: action.sortBy }
         case 'SET_SORT_ORDER':
             return { ...state, sortOrder: action.sortOrder }
+        case 'SET_ACCENT_COLOR':
+            return { ...state, accentColor: action.color }
         default:
             return state
     }
@@ -195,7 +199,8 @@ const initialState: NotesState = {
     deleteConfirmId: null,
     isSidebarOpen: true,
     sortBy: 'updatedAt',
-    sortOrder: 'desc'
+    sortOrder: 'desc',
+    accentColor: localStorage.getItem('noter-accent') || 'indigo'
 }
 
 interface NotesContextValue {
@@ -229,6 +234,7 @@ interface NotesContextValue {
     updateNoteLabel: (id: string, labelId: string | undefined) => Promise<void>
     openNoteByTitle: (title: string, inNewWindow?: boolean) => Promise<void>
     exportPDF: (id: string, title: string) => Promise<void>
+    setAccentColor: (color: string) => void
 }
 
 const NotesContext = createContext<NotesContextValue | null>(null)
@@ -249,8 +255,12 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             document.getElementById('hljs-theme')?.setAttribute('href',
                 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css')
         }
+
+        html.setAttribute('data-theme', state.accentColor)
+
         localStorage.setItem('noter-theme', state.theme)
-    }, [state.theme])
+        localStorage.setItem('noter-accent', state.accentColor)
+    }, [state.theme, state.accentColor])
 
     const loadNotes = useCallback(async () => {
         dispatch({ type: 'SET_LOADING', loading: true })
@@ -478,6 +488,10 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: 'SET_SORT_ORDER', sortOrder })
     }, [])
 
+    const setAccentColor = useCallback((color: string) => {
+        dispatch({ type: 'SET_ACCENT_COLOR', color })
+    }, [])
+
     const activeNote = state.notes.find(n => n.id === state.activeNoteId)
 
     const sortedNotes = React.useMemo(() => {
@@ -540,7 +554,8 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             deleteLabel,
             updateNoteLabel,
             openNoteByTitle,
-            exportPDF
+            exportPDF,
+            setAccentColor
         }}>
             {children}
         </NotesContext.Provider>
