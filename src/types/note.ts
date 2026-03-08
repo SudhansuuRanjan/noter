@@ -52,5 +52,15 @@ export interface ElectronAPI {
 declare global {
     interface Window {
         electronAPI: ElectronAPI
+        updaterAPI: {
+            onChecking: (callback: () => void) => void
+            onAvailable: (callback: (event: any, info: any) => void) => void
+            onNotAvailable: (callback: () => void) => void
+            onDownloadProgress: (callback: (event: any, progress: any) => void) => void
+            onDownloaded: (callback: (event: any, info: any) => void) => void
+            onError: (callback: (event: any, error: any) => void) => void
+            installUpdate: () => void
+            removeAllListeners: () => void
+        }
     }
 }

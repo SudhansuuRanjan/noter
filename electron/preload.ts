@@ -85,4 +85,23 @@ const api: ElectronAPI = {
     windowArgs: getWindowArgs()
 }
 
+const updaterApi = {
+    onChecking: (callback: () => void) => ipcRenderer.on('updater:checking', () => callback()),
+    onAvailable: (callback: (event: any, info: any) => void) => ipcRenderer.on('updater:available', callback),
+    onNotAvailable: (callback: () => void) => ipcRenderer.on('updater:not-available', () => callback()),
+    onDownloadProgress: (callback: (event: any, progress: any) => void) => ipcRenderer.on('updater:download-progress', callback),
+    onDownloaded: (callback: (event: any, info: any) => void) => ipcRenderer.on('updater:downloaded', callback),
+    onError: (callback: (event: any, error: any) => void) => ipcRenderer.on('updater:error', callback),
+    installUpdate: () => ipcRenderer.send('updater:install'),
+    removeAllListeners: () => {
+        ipcRenderer.removeAllListeners('updater:checking')
+        ipcRenderer.removeAllListeners('updater:available')
+        ipcRenderer.removeAllListeners('updater:not-available')
+        ipcRenderer.removeAllListeners('updater:download-progress')
+        ipcRenderer.removeAllListeners('updater:downloaded')
+        ipcRenderer.removeAllListeners('updater:error')
+    }
+}
+
 contextBridge.exposeInMainWorld('electronAPI', api)
+contextBridge.exposeInMainWorld('updaterAPI', updaterApi)

@@ -44,5 +44,6 @@ appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
 publish:
-  provider: generic
-  url: http://10.75.144.227/auto-updates
+  provider: github
+  owner: SudhansuuRanjan
+  repo: noter

@@ -41,6 +41,7 @@
     "@uiw/codemirror-theme-github": "^4.21.21",
     "@uiw/react-codemirror": "^4.21.21",
     "dotenv": "^17.3.1",
+    "electron-updater": "^6.8.3",
     "lucide-react": "^0.344.0",
     "mermaid": "^11.12.3",
     "react": "^18.2.0",

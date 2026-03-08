@@ -3,6 +3,8 @@ import { join, extname } from 'path'
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, unlinkSync, copyFileSync } from 'fs'
 import { homedir } from 'os'
 import { v4 as uuidv4 } from 'uuid'
+import { setupAutoUpdater } from './updater'
+
 
 const NOTES_DIR = join(homedir(), 'Notes', 'noter')
 const META_FILE = join(NOTES_DIR, '.meta.json')
@@ -52,7 +54,8 @@ function writeLabels(labels: Array<{ id: string; name: string; color: string }>)
     writeFileSync(LABELS_FILE, JSON.stringify(labels, null, 2), 'utf-8')
 }
 
-function createWindow(noteId?: string): void {
+function createWindow(noteId?: string): BrowserWindow {
+
     const isSecondary = !!noteId
     const win = new BrowserWindow({
         width: isSecondary ? 800 : 1280,
@@ -95,6 +98,8 @@ function createWindow(noteId?: string): void {
     } else {
         win.loadFile(join(__dirname, '../renderer/index.html'))
     }
+
+    return win
 }
 
 app.whenReady().then(() => {
@@ -114,9 +119,14 @@ app.whenReady().then(() => {
         return new Response('Not found', { status: 404 })
     })
 
-    createWindow()
+    const mainWindow = createWindow()
+    setupAutoUpdater(mainWindow)
+
     app.on('activate', function () {
-        if (BrowserWindow.getAllWindows().filter(w => !w.isDestroyed()).length === 0) createWindow()
+        if (BrowserWindow.getAllWindows().filter(w => !w.isDestroyed()).length === 0) {
+            const win = createWindow()
+            setupAutoUpdater(win)
+        }
     })
 })
 

@@ -6,6 +6,7 @@ import { Preview } from './components/Preview'
 import { Toolbar } from './components/Toolbar'
 import { DeleteModal } from './components/DeleteModal'
 import { CommandPalette } from './components/CommandPalette'
+import { UpdateBanner } from './components/UpdateBanner'
 import { NotesProvider, useNotes } from './context/NotesContext'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 
@@ -144,6 +145,7 @@ function AppLayout() {
 
             <CommandPalette />
             <DeleteModal />
+            <UpdateBanner />
         </div>
     )
 }
