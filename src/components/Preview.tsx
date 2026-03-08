@@ -60,7 +60,14 @@ export function Preview() {
         ">
                     <ReactMarkdown
                         remarkPlugins={[remarkGfm, remarkMath]}
-                        rehypePlugins={[rehypeHighlight, rehypeKatex]}
+                        rehypePlugins={[
+                            rehypeHighlight,
+                            [rehypeKatex, {
+                                macros: {
+                                    "\\f": "#1f(#2)"
+                                }
+                            }]
+                        ]}
                         components={{
                             code({ node, className, children, ...props }) {
                                 const match = /language-(\w+)/.exec(className || '')
