@@ -1,7 +1,36 @@
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import remarkMath from 'remark-math'
 import rehypeHighlight from 'rehype-highlight'
+import rehypeKatex from 'rehype-katex'
+import mermaid from 'mermaid'
 import { useNotes } from '../context/NotesContext'
+import { useEffect, useRef } from 'react'
+
+// Initialize mermaid
+mermaid.initialize({
+    startOnLoad: true,
+    theme: 'default',
+    securityLevel: 'loose',
+    fontFamily: 'inherit'
+})
+
+const MermaidRenderer = ({ content }: { content: string }) => {
+    const containerRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        if (containerRef.current) {
+            containerRef.current.removeAttribute('data-processed')
+            mermaid.contentLoaded()
+        }
+    }, [content])
+
+    return (
+        <div ref={containerRef} className="mermaid flex justify-center my-4">
+            {content}
+        </div>
+    )
+}
 
 export function Preview() {
     const { activeNote, openNoteByTitle } = useNotes()
@@ -30,9 +59,22 @@ export function Preview() {
           prose-th:bg-zinc-50 dark:prose-th:bg-zinc-800/40
         ">
                     <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        rehypePlugins={[rehypeHighlight]}
+                        remarkPlugins={[remarkGfm, remarkMath]}
+                        rehypePlugins={[rehypeHighlight, rehypeKatex]}
                         components={{
+                            code({ node, className, children, ...props }) {
+                                const match = /language-(\w+)/.exec(className || '')
+                                const isInline = !match
+                                const content = String(children).replace(/\n$/, '')
+                                if (!isInline && match && match[1] === 'mermaid') {
+                                    return <MermaidRenderer content={content} />
+                                }
+                                return (
+                                    <code className={className} {...props}>
+                                        {children}
+                                    </code>
+                                )
+                            },
                             input: ({ ...props }) => (
                                 <input
                                     {...props}
@@ -60,9 +102,10 @@ export function Preview() {
                             }
                         }}
                     >
-                        {activeNote.content.replace(/\[\[(.*?)\]\](?:\("(.*?)"\))?/g, (_, label, id) => {
-                            const target = id || label
-                            return `[${label}](noteref://${encodeURIComponent(target)})`
+                        {activeNote.content.replace(/\[\[(.*?)\]\]/g, (_, inner) => {
+                            const [target, alias] = inner.split('|')
+                            const label = alias || target
+                            return `[${label}](noteref://${encodeURIComponent(target.trim())})`
                         })}
                     </ReactMarkdown>
                 </div>

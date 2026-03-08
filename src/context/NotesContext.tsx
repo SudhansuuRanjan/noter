@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react'
+import React, { createContext, useContext, useReducer, useCallback, useEffect, useRef, useState } from 'react'
 import { Note, Label, ViewMode, FilterMode } from '../types/note'
 
 interface NotesState {
@@ -228,6 +228,7 @@ interface NotesContextValue {
     deleteLabel: (id: string) => Promise<void>
     updateNoteLabel: (id: string, labelId: string | undefined) => Promise<void>
     openNoteByTitle: (title: string, inNewWindow?: boolean) => Promise<void>
+    exportPDF: (id: string, title: string) => Promise<void>
 }
 
 const NotesContext = createContext<NotesContextValue | null>(null)
@@ -403,6 +404,10 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
         await window.electronAPI.exportNote(id, title)
     }, [])
 
+    const exportPDF = useCallback(async (id: string, title: string) => {
+        await window.electronAPI.exportPDF(id, title)
+    }, [])
+
     const setActiveNote = useCallback((id: string | null) => {
         dispatch({ type: 'SET_ACTIVE', id })
     }, [])
@@ -534,7 +539,8 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             updateLabel,
             deleteLabel,
             updateNoteLabel,
-            openNoteByTitle
+            openNoteByTitle,
+            exportPDF
         }}>
             {children}
         </NotesContext.Provider>

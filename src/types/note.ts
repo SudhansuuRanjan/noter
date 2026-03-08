@@ -32,6 +32,7 @@ export interface ElectronAPI {
     updateNoteLabel: (id: string, labelId: string | undefined) => Promise<boolean>
     importNotes: () => Promise<string[] | null>
     exportNote: (id: string, title: string) => Promise<string | false>
+    exportPDF: (id: string, title: string) => Promise<string | false>
     openFolder: () => Promise<void>
     listLabels: () => Promise<Label[]>
     createLabel: (name: string, color: string) => Promise<Label>

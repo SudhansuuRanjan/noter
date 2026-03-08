@@ -320,7 +320,7 @@ ipcMain.handle('notes:import', async () => {
     return imported
 })
 
-// IPC: Export note
+// IPC: Export note (enhanced Markdown)
 ipcMain.handle('notes:export', async (_event, { id, title }: { id: string; title: string }) => {
     const filePath = join(NOTES_DIR, `${id}.md`)
     if (!existsSync(filePath)) return false
@@ -331,9 +331,59 @@ ipcMain.handle('notes:export', async (_event, { id, title }: { id: string; title
     })
     if (result.canceled || !result.filePath) return false
 
-    copyFileSync(filePath, result.filePath)
+    const content = readFileSync(filePath, 'utf-8')
+
+    try {
+        // Use remark to add TOC and slugs
+        // @ts-ignore
+        const { remark } = await import('remark')
+        // @ts-ignore
+        const { default: remarkToc } = await import('remark-toc')
+        // @ts-ignore
+        const { default: remarkSlug } = await import('remark-slug')
+        // @ts-ignore
+        const { default: remarkGfm } = await import('remark-gfm')
+
+        const processed = await remark()
+            .use(remarkGfm)
+            .use(remarkSlug)
+            .use(remarkToc, { heading: 'contents|toc|table of contents', tight: true })
+            .process(content)
+
+        writeFileSync(result.filePath, String(processed), 'utf-8')
+    } catch (e) {
+        console.error('Failed to process markdown for export:', e)
+        copyFileSync(filePath, result.filePath)
+    }
+
     shell.showItemInFolder(result.filePath)
     return result.filePath
+})
+
+// IPC: Export PDF (using printToPDF)
+ipcMain.handle('notes:exportPDF', async (event, { id, title }: { id: string; title: string }) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (!win) return false
+
+    const result = await dialog.showSaveDialog({
+        defaultPath: `${title}.pdf`,
+        filters: [{ name: 'PDF', extensions: ['pdf'] }]
+    })
+    if (result.canceled || !result.filePath) return false
+
+    try {
+        const data = await win.webContents.printToPDF({
+            printBackground: true,
+            pageSize: 'A4',
+            margins: { top: 1, bottom: 1, left: 1, right: 1 }
+        })
+        writeFileSync(result.filePath, data)
+        shell.showItemInFolder(result.filePath)
+        return result.filePath
+    } catch (e) {
+        console.error('Failed to generate PDF:', e)
+        return false
+    }
 })
 
 // IPC: Open notes folder

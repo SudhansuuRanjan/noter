@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { Edit2, Eye, Columns, Download, Trash2, Star, Save, Tag, Pin, History as HistoryIcon, PanelLeft, ExternalLink, Sparkles } from 'lucide-react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
+import { Edit2, Eye, Columns, Download, Trash2, Star, Save, Tag, Pin, History as HistoryIcon, PanelLeft, ExternalLink, Sparkles, FileText } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
 import { ViewMode } from '../types/note'
 import { HistoryModal } from './HistoryModal'
@@ -12,11 +12,19 @@ const viewModes: { mode: ViewMode; icon: React.ReactNode; label: string }[] = [
 ]
 
 export function Toolbar() {
-    const { state, activeNote, setViewMode, toggleStar, togglePin, exportNote, setDeleteConfirm, updateNoteLabel, toggleSidebar } = useNotes()
+    const { state, activeNote, setViewMode, toggleStar, togglePin, setDeleteConfirm, updateNoteLabel, toggleSidebar } = useNotes()
     const [isLabelMenuOpen, setIsLabelMenuOpen] = useState(false)
     const [showHistory, setShowHistory] = useState(false)
     const [isAICommandOpen, setIsAICommandOpen] = useState(false)
     const labelMenuRef = useRef<HTMLDivElement>(null)
+
+    const exportNote = useCallback(async (id: string, title: string) => {
+        await window.electronAPI.exportNote(id, title)
+    }, [])
+
+    const exportPDF = useCallback(async (id: string, title: string) => {
+        await window.electronAPI.exportPDF(id, title)
+    }, [])
 
     const activeLabel = activeNote?.labelId ? state.labels.find(l => l.id === activeNote.labelId) : null
 
@@ -149,6 +157,14 @@ export function Toolbar() {
                     title="Export note"
                 >
                     <Download size={15} />
+                </button>
+
+                <button
+                    onClick={() => exportPDF(activeNote.id, activeNote.title)}
+                    className="p-2 rounded-lg text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all duration-200"
+                    title="Export as PDF"
+                >
+                    <FileText size={15} />
                 </button>
 
                 <button

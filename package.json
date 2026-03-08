@@ -40,12 +40,18 @@
     "@uiw/react-codemirror": "^4.21.21",
     "dotenv": "^17.3.1",
     "lucide-react": "^0.344.0",
+    "mermaid": "^11.12.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-markdown": "^9.0.1",
     "react-resizable-panels": "2.0.19",
     "rehype-highlight": "^7.0.0",
+    "rehype-katex": "^7.0.1",
+    "remark": "^15.0.1",
     "remark-gfm": "^4.0.0",
+    "remark-math": "^6.0.0",
+    "remark-slug": "^8.0.0",
+    "remark-toc": "^9.0.0",
     "uuid": "^9.0.1"
   }
 }
