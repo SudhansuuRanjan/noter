@@ -11,34 +11,49 @@ interface HelpModalProps {
 }
 
 const HELP_CONTENT = `
-# Noter Cheat Sheet ✨
+# Noter Power Guide ✨
 
-Welcome to Noter! This is a lightning-fast, local-first markdown editor tailored for developers. Here are some of the power features you can use to upgrade your daily workflow:
+Welcome to Noter! This is a lightning-fast, local-first markdown editor. Here are the latest features to boost your productivity:
 
-## ⚡ Command Palette (Cmd/Ctrl + K)
-Pressing \`Cmd+K\` instantly brings up the Command Palette. Type to fuzzy-search across your entire vault. You can instantly open notes, navigate features, or toggle your view modes without touching your mouse!
+## ⚡ Quick Shortcuts
+- **Cmd/Ctrl + K**: Open Command Palette (Search & Actions)
+- **Cmd/Ctrl + N**: Create a new note instantly
+- **Cmd/Ctrl + S**: Forced save (Auto-save is also active)
+- **Esc**: Close modals or exit full-screen views
 
-## 🔗 Internal Note Linking
-Tired of flat lists? Build a personal wiki. Typing \`[[Note Title]]\` anywhere in your document will create a clickable hyperlink.
-- If the note exists, clicking it instantly navigates you to it.
-- If the note doesn't exist, clicking it will automatically create it for you!
+## 🤖 AI Assistant (Writing & Editing)
+Transform your notes with integrated AI. Click the **Sparkles** icon in the toolbar or use the Command Palette to:
+- **Rephrase**: Make your writing more professional.
+- **Summarize**: Turn long notes into concise bullet points.
+- **Fix Grammar**: Polish your spelling and syntax instantly.
+- **Continue Writing**: Let the AI expand on your existing ideas.
+- **Custom Prompts**: Ask the AI anything directly!
 
-## #️⃣ Hashtag Collections
-When you type tags like \`#ideas\` or \`#todos\` directly into the text editor, Noter actively scrapes them and builds an intelligent global index in your Sidebar. Click a tag in the sidebar to filter your entire workspace down to those active contexts.
+## 🔗 Intelligent Note Linking
+Connect your thoughts with Wiki-Style links using \`[[Note Title]]\`. 
+- Clicking a link opens a **Smart Router** modal.
+- Choose to open in the **Current Window** or a **New Dedicated Window** for side-by-side reference.
+- If the note doesn't exist, Noter will create it for you!
+
+## 🎨 Theme & Personalization
+Make Noter your own. Navigate to **AI Settings** (via Gear icon or Cmd+K) to:
+- Toggle between **Light** and **Dark** modes.
+- Choose your **Accent Color** (Indigo, Cyan, or Pink) which affects the entire UI.
+
+## � Professional PDF Export
+Need a hard copy? Click the **PDF** icon in the preview toolbar. Noter generates a clean, paginated PDF with:
+- Dedicated print-ready typography.
+- Automatic light-mode conversion for legibility.
+- Hidden UI elements for a pure document finish.
+
+## 📊 Advanced Markdown support
+- **Mermaid Diagrams**: Render charts and flows using \`\`\`mermaid\`\`\` blocks.
+- **LaTeX Math**: Render formulas using \`$\` for inline and \`$$\` for blocks.
+- **Copy Code**: Hover over any code block to see the fast Copy button.
+- **Smart Tables**: Enhanced, beautiful table rendering with hover highlights.
 
 ## ⏪ Revisions & Time Machine
-Never lose your work! Every time you successfully edit a document, Noter secretly forks an invisible backup checkpoint. Click the **Clock** icon in the top right to open the **History** modal, where you can view every historical edit you've made to the file and instantly restore it to an older version.
-
-## 🖼️ Drag & Drop Attachments
-Working with screenshots? Just drag and drop (or paste) an image directly onto the editor. Noter will securely extract the picture, save it to a local \`attachments\` folder, and securely generate standard Markdown image syntax \`![Alt](noter://attachments/...)\` that renders natively in Split/Watch views!
-
-## 📌 Pins, Stars, and Labels
-- **Pins**: Keep your scratchpads visible. Hit the **Pin** icon to sticky a note to the very top of your sidebar.
-- **Labels**: Build your own folder-like categorization list in the Sidebar. Right-click or use the action icons to assign colors and cleanly group related files. 
-- **Star**: Star your favorites for an easy toggle filter!
-
-## 📅 Daily Standups
-Hit the **Calendar** icon in the left sidebar nav. Noter will instantly synthesize today's date into a new, auto-labeled Journal entry—perfect for quick standup notes or end-of-day dumping!
+Never lose your work! Every time you edit, Noter creates a silent checkpoint. Click the **Clock** icon to view history and restore past versions.
 `
 
 export function HelpModal({ isOpen, onClose }: HelpModalProps) {
