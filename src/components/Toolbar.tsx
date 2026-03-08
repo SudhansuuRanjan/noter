@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { Edit2, Eye, Columns, Download, Trash2, Star, Save, Tag, Pin, History as HistoryIcon, PanelLeft, ExternalLink, Sparkles, FileText } from 'lucide-react'
+import { Edit2, Eye, Columns, Download, Trash2, Star, Save, Tag, Pin, History as HistoryIcon, PanelLeft, ExternalLink, Sparkles, FileText, Link2, Search } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
 import { ViewMode } from '../types/note'
 import { HistoryModal } from './HistoryModal'
@@ -15,7 +15,10 @@ export function Toolbar() {
     const { state, activeNote, setViewMode, toggleStar, togglePin, setDeleteConfirm, updateNoteLabel, toggleSidebar } = useNotes()
     const [isLabelMenuOpen, setIsLabelMenuOpen] = useState(false)
     const [showHistory, setShowHistory] = useState(false)
+    const [isLinkMenuOpen, setIsLinkMenuOpen] = useState(false)
+    const [linkSearchQuery, setLinkSearchQuery] = useState('')
     const labelMenuRef = useRef<HTMLDivElement>(null)
+    const linkMenuRef = useRef<HTMLDivElement>(null)
 
     const exportNote = useCallback(async (id: string, title: string) => {
         await window.electronAPI.exportNote(id, title)
@@ -31,6 +34,10 @@ export function Toolbar() {
         function handleClickOutside(event: MouseEvent) {
             if (labelMenuRef.current && !labelMenuRef.current.contains(event.target as Node)) {
                 setIsLabelMenuOpen(false)
+            }
+            if (linkMenuRef.current && !linkMenuRef.current.contains(event.target as Node)) {
+                setIsLinkMenuOpen(false)
+                setTimeout(() => setLinkSearchQuery(''), 200) // Reset search after menu closes
             }
         }
         document.addEventListener('mousedown', handleClickOutside)
@@ -127,6 +134,71 @@ export function Toolbar() {
                 </div>
 
                 <div className="w-px h-5 bg-zinc-200 dark:bg-zinc-700/50 mx-1" />
+
+                {(state.viewMode === 'edit' || state.viewMode === 'split') && (
+                    <div className="relative" ref={linkMenuRef}>
+                        <button
+                            onClick={() => setIsLinkMenuOpen(!isLinkMenuOpen)}
+                            className={`p-2 rounded-lg transition-all duration-200 ${isLinkMenuOpen
+                                ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
+                                : 'text-zinc-400 hover:text-indigo-500 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                                }`}
+                            title="Insert Link to Note"
+                        >
+                            <Link2 size={15} />
+                        </button>
+
+                        {isLinkMenuOpen && (
+                            <div className="absolute top-full right-0 mt-1 w-64 bg-white dark:bg-zinc-900 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-800 py-1.5 z-50 overflow-hidden">
+                                <div className="px-3 py-2 mb-1 border-b border-zinc-100 dark:border-zinc-800/60 bg-zinc-50/50 dark:bg-zinc-900/50">
+                                    <div className="relative">
+                                        <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-400" />
+                                        <input
+                                            type="text"
+                                            autoFocus
+                                            placeholder="Search notes..."
+                                            value={linkSearchQuery}
+                                            onChange={(e) => setLinkSearchQuery(e.target.value)}
+                                            className="w-full pl-6 pr-3 py-1.5 text-xs bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 text-zinc-700 dark:text-zinc-300 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="max-h-60 overflow-y-auto">
+                                    {state.notes
+                                        .filter(n => n.id !== activeNote.id)
+                                        .filter(n => linkSearchQuery === '' ||
+                                            n.title.toLowerCase().includes(linkSearchQuery.toLowerCase()) ||
+                                            n.preview.toLowerCase().includes(linkSearchQuery.toLowerCase()))
+                                        .map(note => (
+                                            <button
+                                                key={note.id}
+                                                onClick={() => {
+                                                    const markdownLink = `[${note.title}](noteref://${note.id})`
+                                                    window.dispatchEvent(new CustomEvent('insert-note-link', { detail: markdownLink }))
+                                                    setIsLinkMenuOpen(false)
+                                                    setTimeout(() => setLinkSearchQuery(''), 200)
+                                                }}
+                                                className="w-full text-left px-3 py-2 text-xs hover:bg-zinc-50 dark:hover:bg-zinc-800/50 flex flex-col gap-0.5 border-b border-zinc-100 dark:border-zinc-800/30 last:border-0"
+                                            >
+                                                <span className="font-medium text-zinc-700 dark:text-zinc-300 truncate">{note.title}</span>
+                                                <span className="text-zinc-400 dark:text-zinc-500 text-[10px] truncate">{note.preview || 'No content...'}</span>
+                                            </button>
+                                        ))}
+                                    {state.notes
+                                        .filter(n => n.id !== activeNote.id)
+                                        .filter(n => linkSearchQuery === '' ||
+                                            n.title.toLowerCase().includes(linkSearchQuery.toLowerCase()) ||
+                                            n.preview.toLowerCase().includes(linkSearchQuery.toLowerCase()))
+                                        .length === 0 && (
+                                            <div className="px-3 py-4 text-center text-xs text-zinc-500 dark:text-zinc-400">
+                                                {linkSearchQuery ? 'No matching notes' : 'No other notes found'}
+                                            </div>
+                                        )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 <button
                     onClick={() => togglePin(activeNote.id)}

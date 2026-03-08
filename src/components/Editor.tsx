@@ -139,8 +139,26 @@ export function Editor() {
 
     useEffect(() => {
         const handleOpenAI = () => setIsAICommandOpen(true)
+        const handleInsertLink = (e: Event) => {
+            const customEvent = e as CustomEvent<string>
+            const markdownLink = customEvent.detail
+            if (viewRef.current && markdownLink) {
+                viewRef.current.focus()
+                const { head } = viewRef.current.state.selection.main
+                viewRef.current.dispatch({
+                    changes: { from: head, to: head, insert: markdownLink },
+                    selection: { anchor: head + markdownLink.length }
+                })
+            }
+        }
+
         window.addEventListener('open-ai-command', handleOpenAI)
-        return () => window.removeEventListener('open-ai-command', handleOpenAI)
+        window.addEventListener('insert-note-link', handleInsertLink)
+
+        return () => {
+            window.removeEventListener('open-ai-command', handleOpenAI)
+            window.removeEventListener('insert-note-link', handleInsertLink)
+        }
     }, [])
 
     const applyAIResult = (result: string) => {
