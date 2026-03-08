@@ -3,6 +3,7 @@ import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeKatex from 'rehype-katex'
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
 import { ExternalLink, X, Copy, Check } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
 import { useEffect, useRef, useState } from 'react'
@@ -43,7 +44,7 @@ const MermaidRenderer = ({ content }: { content: string }) => {
                     m.initialize({
                         startOnLoad: false,
                         theme: 'default',
-                        securityLevel: 'loose',
+                        securityLevel: 'strict',
                         fontFamily: 'inherit'
                     })
                     if (isMounted) {
@@ -105,6 +106,22 @@ export function Preview() {
         ">
                     <ReactMarkdown
                         urlTransform={(value: string) => {
+                            // Only allow safe protocols
+                            const safeProtocols = ['http:', 'https:', 'mailto:', 'tel:']
+                            const internalProtocols = ['noter:', 'noteref:']
+
+                            try {
+                                const url = new URL(value)
+                                if (!safeProtocols.includes(url.protocol) && !internalProtocols.includes(url.protocol)) {
+                                    return ''
+                                }
+                            } catch (e) {
+                                // If not a valid absolute URL, it might be a relative path or an internal link we handle below
+                                if (value.startsWith('javascript:') || value.startsWith('data:')) {
+                                    return ''
+                                }
+                            }
+
                             // Auto-fix GitHub blob URLs to raw URLs
                             if (value.startsWith('https://github.com/') && value.includes('/blob/')) {
                                 return value
@@ -112,7 +129,7 @@ export function Preview() {
                                     .replace('/blob/', '/')
                             }
 
-                            if (value.startsWith('http') || value.startsWith('https') || value.startsWith('noter://') || value.startsWith('data:')) {
+                            if (value.startsWith('http') || value.startsWith('https') || value.startsWith('noter://') || value.startsWith('noteref://') || value.startsWith('mailto:')) {
                                 return value
                             }
                             // Handle relative paths
@@ -130,6 +147,14 @@ export function Preview() {
                         }}
                         remarkPlugins={[remarkGfm, remarkMath]}
                         rehypePlugins={[
+                            [rehypeSanitize, {
+                                ...defaultSchema,
+                                protocols: {
+                                    ...defaultSchema.protocols,
+                                    href: [...(defaultSchema.protocols?.href || []), 'noter', 'noteref'],
+                                    src: [...(defaultSchema.protocols?.src || []), 'noter']
+                                }
+                            }],
                             [rehypeHighlight, { languages: common }],
                             [rehypeKatex, {
                                 macros: {
