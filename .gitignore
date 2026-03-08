@@ -8,7 +8,7 @@ dist/
 dist-electron/
 out/
 release/
-
+notes.md
 # Vite
 .vite/
 
