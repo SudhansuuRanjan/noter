@@ -15,7 +15,6 @@ export function Toolbar() {
     const { state, activeNote, setViewMode, toggleStar, togglePin, setDeleteConfirm, updateNoteLabel, toggleSidebar } = useNotes()
     const [isLabelMenuOpen, setIsLabelMenuOpen] = useState(false)
     const [showHistory, setShowHistory] = useState(false)
-    const [isAICommandOpen, setIsAICommandOpen] = useState(false)
     const labelMenuRef = useRef<HTMLDivElement>(null)
 
     const exportNote = useCallback(async (id: string, title: string) => {
@@ -179,7 +178,7 @@ export function Toolbar() {
 
                 {(state.viewMode === 'edit' || state.viewMode === 'split') && (
                     <button
-                        onClick={() => setIsAICommandOpen(true)}
+                        onClick={() => window.dispatchEvent(new Event('open-ai-command'))}
                         className="p-2 rounded-lg text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all duration-200"
                         title="AI Assistant"
                     >
@@ -209,11 +208,6 @@ export function Toolbar() {
             {showHistory && (
                 <HistoryModal note={activeNote} onClose={() => setShowHistory(false)} />
             )}
-
-            <AICommand
-                isOpen={isAICommandOpen}
-                onClose={() => setIsAICommandOpen(false)}
-            />
         </div>
     )
 }

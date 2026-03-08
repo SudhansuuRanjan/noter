@@ -137,6 +137,12 @@ export function Editor() {
         }
     }, [activeNote?.id])
 
+    useEffect(() => {
+        const handleOpenAI = () => setIsAICommandOpen(true)
+        window.addEventListener('open-ai-command', handleOpenAI)
+        return () => window.removeEventListener('open-ai-command', handleOpenAI)
+    }, [])
+
     const applyAIResult = (result: string) => {
         console.log('Applying AI result:', { result, hasView: !!viewRef.current, selection })
         if (!viewRef.current) return
