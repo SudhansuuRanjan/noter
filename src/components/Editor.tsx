@@ -3,7 +3,7 @@ import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
 import { languages } from '@codemirror/language-data'
 import { dracula } from '@uiw/codemirror-theme-dracula'
 import { githubLight } from '@uiw/codemirror-theme-github'
-import { EditorView } from '@codemirror/view'
+import { EditorView, ViewPlugin, Decoration, MatchDecorator, ViewUpdate } from '@codemirror/view'
 import { search } from '@codemirror/search'
 import { useNotes } from '../context/NotesContext'
 import { useCallback, useRef, useState, useEffect } from 'react'
@@ -19,6 +19,23 @@ const customTheme = EditorView.theme({
     '&.cm-focused': { outline: 'none !important' },
     '.cm-gutters': { display: 'none' },
     '.cm-cursor': { borderLeftColor: '#6366f1' }
+})
+
+const mathDecorator = new MatchDecorator({
+    regexp: /\$\$[\s\S]*?\$\$|\$[^\n$]*?\$/g,
+    decoration: Decoration.mark({ class: 'cm-math' })
+})
+
+const mathPlugin = ViewPlugin.fromClass(class {
+    decorations;
+    constructor(view: EditorView) {
+        this.decorations = mathDecorator.createDeco(view)
+    }
+    update(update: ViewUpdate) {
+        this.decorations = mathDecorator.updateDeco(update, this.decorations)
+    }
+}, {
+    decorations: v => v.decorations
 })
 
 export function Editor() {
@@ -191,6 +208,7 @@ export function Editor() {
                 extensions={[
                     markdown({ base: markdownLanguage, codeLanguages: languages }),
                     customTheme,
+                    mathPlugin,
                     attachmentHandler,
                     search({ top: true }),
                     EditorView.lineWrapping

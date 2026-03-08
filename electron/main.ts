@@ -299,11 +299,13 @@ ipcMain.handle('notes:updateLabel', (_event, { id, labelId }: { id: string; labe
 
 // IPC: Import note
 ipcMain.handle('notes:import', async () => {
-    const result = await dialog.showOpenDialog({
+    const result = (await dialog.showOpenDialog({
         properties: ['openFile', 'multiSelections'],
         filters: [{ name: 'Markdown', extensions: ['md', 'markdown', 'txt'] }]
-    })
-    if (result.canceled || !result.filePaths.length) return null
+    })) as any
+
+    // electron 29 dialog returns an object with canceled and filePaths properties.
+    if (result.canceled || !result.filePaths || result.filePaths.length === 0) return null
 
     const imported = []
     const meta = readMeta()
@@ -325,10 +327,10 @@ ipcMain.handle('notes:export', async (_event, { id, title }: { id: string; title
     const filePath = join(NOTES_DIR, `${id}.md`)
     if (!existsSync(filePath)) return false
 
-    const result = await dialog.showSaveDialog({
+    const result = (await dialog.showSaveDialog({
         defaultPath: `${title}.md`,
         filters: [{ name: 'Markdown', extensions: ['md'] }]
-    })
+    })) as any
     if (result.canceled || !result.filePath) return false
 
     const content = readFileSync(filePath, 'utf-8')
@@ -365,17 +367,17 @@ ipcMain.handle('notes:exportPDF', async (event, { id, title }: { id: string; tit
     const win = BrowserWindow.fromWebContents(event.sender)
     if (!win) return false
 
-    const result = await dialog.showSaveDialog({
+    const result = (await dialog.showSaveDialog({
         defaultPath: `${title}.pdf`,
         filters: [{ name: 'PDF', extensions: ['pdf'] }]
-    })
+    })) as any
     if (result.canceled || !result.filePath) return false
 
     try {
         const data = await win.webContents.printToPDF({
             printBackground: true,
             pageSize: 'A4',
-            margins: { top: 1, bottom: 1, left: 1, right: 1 }
+            marginsType: 1
         })
         writeFileSync(result.filePath, data)
         shell.showItemInFolder(result.filePath)

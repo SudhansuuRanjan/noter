@@ -65,15 +65,48 @@
 /* Print & PDF Styles */
 @media print {
 
-    .sidebar,
-    .toolbar,
+    /* Hide layout wrappers and UI elements */
+    #sidebar-panel,
+    [data-panel-id="sidebar-panel"],
+    [data-panel-resize-handle-id],
+    header,
     .no-print,
     button,
     .ai-assistant-trigger {
         display: none !important;
     }
 
-    body {
+    /* Target the toolbar based on its layout */
+    #main-panel>div>div:first-child {
+        display: none !important;
+    }
+
+    /* Override flex behavior from react-resizable-panels */
+    #main-panel,
+    [data-panel-id="main-panel"],
+    .flex,
+    .flex-col,
+    .PanelGroup,
+    .Panel {
+        display: block !important;
+        flex: none !important;
+        height: auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: visible !important;
+        position: static !important;
+        transform: none !important;
+    }
+
+    /* If the viewMode is "split" or "edit", the editor panel might still be visible. We only want to print the Preview panel. */
+    #main-panel .cm-editor {
+        display: none !important;
+    }
+
+    body,
+    html,
+    #root {
+        height: auto !important;
         background: white !important;
         color: black !important;
         overflow: visible !important;
@@ -97,6 +130,7 @@
         font-size: 11pt !important;
         line-height: 1.6 !important;
         color: #111 !important;
+        max-width: 100% !important;
     }
 
     pre,
@@ -115,6 +149,12 @@
     a {
         text-decoration: none !important;
         color: #000 !important;
+    }
+
+    /* Force background colors to print for code blocks */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 }
 
@@ -140,4 +180,18 @@
 /* Selection color */
 ::selection {
     background: rgba(99, 102, 241, 0.25);
+}
+
+/* Math highlight */
+.cm-math {
+    color: #a855f7;
+    background: rgba(168, 85, 247, 0.1);
+    border-radius: 4px;
+    padding: 0 4px;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.dark .cm-math {
+    color: #c084fc;
+    background: rgba(192, 132, 252, 0.15);
 }

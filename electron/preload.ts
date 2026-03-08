@@ -29,6 +29,7 @@ export interface ElectronAPI {
     updateNoteLabel: (id: string, labelId: string | undefined) => Promise<boolean>
     importNotes: () => Promise<string[] | null>
     exportNote: (id: string, title: string) => Promise<string | false>
+    exportPDF: (id: string, title: string) => Promise<string | false>
     openFolder: () => Promise<void>
     listLabels: () => Promise<Label[]>
     createLabel: (name: string, color: string) => Promise<Label>
@@ -67,6 +68,7 @@ const api: ElectronAPI = {
     updateNoteLabel: (id: string, labelId: string | undefined) => ipcRenderer.invoke('notes:updateLabel', { id, labelId }),
     importNotes: () => ipcRenderer.invoke('notes:import'),
     exportNote: (id: string, title: string) => ipcRenderer.invoke('notes:export', { id, title }),
+    exportPDF: (id: string, title: string) => ipcRenderer.invoke('notes:exportPDF', { id, title }),
     openFolder: () => ipcRenderer.invoke('notes:openFolder'),
     listLabels: () => ipcRenderer.invoke('labels:list'),
     createLabel: (name: string, color: string) => ipcRenderer.invoke('labels:create', { name, color }),

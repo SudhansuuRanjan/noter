@@ -15,6 +15,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@types/electron": "^1.4.38",
     "@types/node": "^20.11.20",
     "@types/react": "^18.2.57",
     "@types/react-dom": "^18.2.19",
@@ -35,6 +36,7 @@
     "@codemirror/search": "^6.6.0",
     "@openrouter/sdk": "^0.9.11",
     "@tailwindcss/typography": "^0.5.19",
+    "@uiw/codemirror-extensions-langs": "^4.25.8",
     "@uiw/codemirror-theme-dracula": "^4.21.21",
     "@uiw/codemirror-theme-github": "^4.21.21",
     "@uiw/react-codemirror": "^4.21.21",

@@ -159,13 +159,15 @@ export function Toolbar() {
                     <Download size={15} />
                 </button>
 
-                <button
-                    onClick={() => exportPDF(activeNote.id, activeNote.title)}
-                    className="p-2 rounded-lg text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all duration-200"
-                    title="Export as PDF"
-                >
-                    <FileText size={15} />
-                </button>
+                {state.viewMode === 'preview' && (
+                    <button
+                        onClick={() => exportPDF(activeNote.id, activeNote.title)}
+                        className="p-2 rounded-lg text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all duration-200"
+                        title="Export as PDF"
+                    >
+                        <FileText size={15} />
+                    </button>
+                )}
 
                 <button
                     onClick={() => window.electronAPI.openInNewWindow(activeNote.id)}

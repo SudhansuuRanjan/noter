@@ -184,7 +184,7 @@ const initialState: NotesState = {
     notes: [],
     labels: [],
     activeNoteId: null,
-    viewMode: 'split',
+    viewMode: 'preview',
     filterMode: 'all',
     searchQuery: '',
     selectedLabelId: null,
