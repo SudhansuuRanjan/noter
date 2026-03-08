@@ -332,7 +332,7 @@ export function Sidebar() {
             {/* Notes list */}
             <div className="flex-1 overflow-y-auto px-2 pb-4">
                 {state.isLoading ? (
-                    <div className="flex flex-col gap-2 px-2 mt-2">
+                    <div className="flex flex-col gap-2 px-4 mt-2">
                         {[...Array(4)].map((_, i) => (
                             <div key={i} className="rounded-xl bg-zinc-200 dark:bg-zinc-800/40 p-3 animate-pulse">
                                 <div className="h-3 bg-zinc-300 dark:bg-zinc-700/60 rounded w-3/4 mb-2" />
