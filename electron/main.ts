@@ -107,6 +107,10 @@ app.whenReady().then(() => {
             const filePath = join(ATTACHMENTS_DIR, fileName)
             return net.fetch('file://' + filePath)
         }
+        if (urlRequest.startsWith('local/')) {
+            const filePath = decodeURIComponent(urlRequest.replace('local/', ''))
+            return net.fetch('file://' + filePath)
+        }
         return new Response('Not found', { status: 404 })
     })
 

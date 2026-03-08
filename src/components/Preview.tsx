@@ -104,7 +104,30 @@ export function Preview() {
           prose-tr:hover:bg-zinc-50/80 dark:prose-tr:hover:bg-zinc-800/30 prose-tr:transition-colors prose-tr:border-none
         ">
                     <ReactMarkdown
-                        urlTransform={(value: string) => value}
+                        urlTransform={(value: string) => {
+                            // Auto-fix GitHub blob URLs to raw URLs
+                            if (value.startsWith('https://github.com/') && value.includes('/blob/')) {
+                                return value
+                                    .replace('github.com', 'raw.githubusercontent.com')
+                                    .replace('/blob/', '/')
+                            }
+
+                            if (value.startsWith('http') || value.startsWith('https') || value.startsWith('noter://') || value.startsWith('data:')) {
+                                return value
+                            }
+                            // Handle relative paths
+                            if (activeNote.filePath && !value.startsWith('/')) {
+                                try {
+                                    // Use path components to find dir. 
+                                    const dir = activeNote.filePath.split('/').slice(0, -1).join('/')
+                                    const absolutePath = `${dir}/${value.replace(/^\.\//, '')}`
+                                    return `noter://local/${encodeURIComponent(absolutePath)}`
+                                } catch (e) {
+                                    console.error('Failed to resolve relative path', e)
+                                }
+                            }
+                            return value
+                        }}
                         remarkPlugins={[remarkGfm, remarkMath]}
                         rehypePlugins={[
                             [rehypeHighlight, { languages: common }],
