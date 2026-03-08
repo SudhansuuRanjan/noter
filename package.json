@@ -1,6 +1,6 @@
 {
   "name": "noter",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A modern local-first note-taking app with GitHub Flavored Markdown",
   "main": "out/main/main.js",
   "scripts": {
