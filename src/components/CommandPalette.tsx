@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { Search, FileText, Plus, Moon, Sun, Tag, FolderOpen } from 'lucide-react'
+import { Search, FileText, Plus, Moon, Sun, Tag, FolderOpen, Settings, HelpCircle, Hash } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
 
 export function CommandPalette() {
-    const { state, setActiveNote, createNote, toggleTheme, openFolder, setSelectedLabelId } = useNotes()
+    const { state, setActiveNote, createNote, toggleTheme, openFolder, setSelectedLabelId, setSelectedTag } = useNotes()
     const [isOpen, setIsOpen] = useState(false)
     const [query, setQuery] = useState('')
     const inputRef = useRef<HTMLInputElement>(null)
@@ -52,7 +52,9 @@ export function CommandPalette() {
     const actionResults = [
         { id: 'new-note', label: 'Create new note', icon: <Plus size={14} />, action: () => createNote() },
         { id: 'toggle-theme', label: `Switch to ${state.theme === 'dark' ? 'Light' : 'Dark'} Theme`, icon: state.theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />, action: () => toggleTheme() },
-        { id: 'open-folder', label: 'Open notes folder', icon: <FolderOpen size={14} />, action: () => openFolder() }
+        { id: 'open-folder', label: 'Open notes folder', icon: <FolderOpen size={14} />, action: () => openFolder() },
+        { id: 'open-settings', label: 'Open AI Settings', icon: <Settings size={14} />, action: () => window.dispatchEvent(new Event('open-settings')) },
+        { id: 'open-help', label: 'Help & Shortcuts', icon: <HelpCircle size={14} />, action: () => window.dispatchEvent(new Event('open-help')) }
     ].filter(a => a.label.toLowerCase().includes(q))
 
     const labelResults = state.labels.filter(l => l.name.toLowerCase().includes(q)).map(l => ({
@@ -60,6 +62,14 @@ export function CommandPalette() {
         label: `Filter by label: ${l.name}`,
         icon: <Tag size={14} style={{ color: l.color }} />,
         action: () => setSelectedLabelId(l.id)
+    }))
+
+    const allTags = Array.from(new Set(state.notes.flatMap(n => n.tags || []))).sort()
+    const tagResults = allTags.filter(t => t.toLowerCase().includes(q)).map(t => ({
+        id: `tag-${t}`,
+        label: `Filter by tag: ${t}`,
+        icon: <Hash size={14} className="text-zinc-400" />,
+        action: () => setSelectedTag(t)
     }))
 
     const handleSelectAction = (action: () => void) => {
@@ -124,6 +134,24 @@ export function CommandPalette() {
                                     key={action.id}
                                     onClick={() => handleSelectAction(action.action)}
                                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-left"
+                                >
+                                    <div className="flex items-center justify-center w-6 h-6 rounded-md bg-zinc-100 dark:bg-zinc-800">
+                                        {action.icon}
+                                    </div>
+                                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200 flex-1">{action.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {tagResults.length > 0 && (
+                        <div className="mb-2">
+                            <div className="px-3 py-1 mb-1 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Tags</div>
+                            {tagResults.map(action => (
+                                <button
+                                    key={action.id}
+                                    onClick={() => handleSelectAction(action.action)}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-zinc-100 dark:bg-zinc-800 transition-colors text-left"
                                 >
                                     <div className="flex items-center justify-center w-6 h-6 rounded-md bg-zinc-100 dark:bg-zinc-800">
                                         {action.icon}

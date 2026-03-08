@@ -4,8 +4,9 @@ import remarkMath from 'remark-math'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeKatex from 'rehype-katex'
 import mermaid from 'mermaid'
+import { ExternalLink, X } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 // Initialize mermaid
 mermaid.initialize({
@@ -34,13 +35,21 @@ const MermaidRenderer = ({ content }: { content: string }) => {
 
 export function Preview() {
     const { activeNote, openNoteByTitle } = useNotes()
+    const [linkModalId, setLinkModalId] = useState<string | null>(null)
+    const scrollRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = 0
+        }
+    }, [activeNote?.id])
 
     if (!activeNote) {
         return <div className="flex-1 h-full bg-white dark:bg-zinc-950" />
     }
 
     return (
-        <div className="flex-1 h-full overflow-y-auto bg-white dark:bg-zinc-950">
+        <div ref={scrollRef} className="flex-1 h-full overflow-y-auto bg-white dark:bg-zinc-950 scroll-smooth">
             <div className="max-w-4xl mx-auto px-8 py-6">
                 <div className="
           prose prose-zinc dark:prose-invert max-w-none
@@ -59,6 +68,7 @@ export function Preview() {
           prose-th:bg-zinc-50 dark:prose-th:bg-zinc-800/40
         ">
                     <ReactMarkdown
+                        urlTransform={(value: string) => value}
                         remarkPlugins={[remarkGfm, remarkMath]}
                         rehypePlugins={[
                             rehypeHighlight,
@@ -97,9 +107,10 @@ export function Preview() {
                                             onClick={(e) => {
                                                 e.preventDefault()
                                                 e.stopPropagation()
-                                                if (targetId) openNoteByTitle(targetId, true)
+                                                if (targetId) setLinkModalId(targetId)
                                             }}
                                             className="text-indigo-600 dark:text-indigo-400 no-underline hover:underline cursor-pointer border-b border-indigo-200 dark:border-indigo-900/50 pb-0.5"
+                                            title="Open note"
                                         >
                                             {children}
                                         </span>
@@ -117,6 +128,59 @@ export function Preview() {
                     </ReactMarkdown>
                 </div>
             </div>
+
+            {/* Link Open Modal */}
+            {linkModalId && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="w-full max-w-sm bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="px-6 py-5 border-b border-zinc-100 dark:border-zinc-800/60 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-800/30">
+                            <div className="flex items-center gap-2.5">
+                                <div className="p-2 bg-indigo-500/10 rounded-lg">
+                                    <ExternalLink className="w-5 h-5 text-indigo-500" />
+                                </div>
+                                <div>
+                                    <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Open Note</h2>
+                                    <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">Choose viewing mode</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setLinkModalId(null)}
+                                className="p-2 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 rounded-lg transition-colors"
+                            >
+                                <X className="w-4 h-4 text-zinc-400" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-4">
+                            <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed font-medium">
+                                How would you like to open this linked note?
+                            </p>
+
+                            <div className="flex flex-col gap-2.5 pt-2">
+                                <button
+                                    onClick={() => {
+                                        openNoteByTitle(linkModalId, false)
+                                        setLinkModalId(null)
+                                    }}
+                                    className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98]"
+                                >
+                                    Open in Current Window
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        openNoteByTitle(linkModalId, true)
+                                        setLinkModalId(null)
+                                    }}
+                                    className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-sm font-semibold rounded-xl transition-all active:scale-[0.98]"
+                                >
+                                    Open in New Window
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

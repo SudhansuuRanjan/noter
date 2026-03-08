@@ -58,27 +58,32 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
     if (!mounted || !isOpen) return null
 
     return createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-zinc-900/40 dark:bg-black/60 backdrop-blur-sm transition-opacity"
+                className="absolute inset-0 cursor-pointer"
                 onClick={onClose}
             />
 
             {/* Modal */}
             <div
-                className="relative w-full max-w-3xl max-h-[85vh] flex flex-col bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 animate-in fade-in zoom-in-95 duration-200"
+                className="relative w-full max-w-3xl max-h-[85vh] flex flex-col bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden animate-in zoom-in-95 duration-200"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800/60 bg-zinc-50 dark:bg-zinc-900/50">
-                    <div className="flex items-center gap-2 text-zinc-800 dark:text-zinc-100">
-                        <Book size={18} className="text-amber-500" />
-                        <h2 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">Help & Shortcuts</h2>
+                <div className="px-6 py-5 border-b border-zinc-100 dark:border-zinc-800/60 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-800/30">
+                    <div className="flex items-center gap-2.5">
+                        <div className="p-2 bg-amber-500/10 rounded-lg">
+                            <Book className="w-5 h-5 text-amber-500" />
+                        </div>
+                        <div>
+                            <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Help & Shortcuts</h2>
+                            <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">Noter Commands and Features</p>
+                        </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
+                        className="p-2 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 rounded-lg transition-colors"
                         title="Close (Esc)"
                     >
                         <X size={16} />
@@ -98,10 +103,10 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800/60 bg-zinc-50 dark:bg-zinc-900/50 flex justify-end">
+                <div className="px-6 py-4 bg-zinc-50 dark:bg-zinc-800/20 border-t border-zinc-100 dark:border-zinc-800/60 flex items-center justify-end">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 text-sm font-medium rounded-xl text-zinc-600 bg-white hover:bg-zinc-50 border border-zinc-200 dark:text-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:border-zinc-700 transition-colors shadow-sm"
+                        className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98]"
                     >
                         Got it!
                     </button>

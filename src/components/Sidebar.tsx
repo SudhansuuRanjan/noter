@@ -6,6 +6,7 @@ import { ThemeToggle } from './ThemeToggle'
 import { HelpModal } from './HelpModal'
 import { AISettings } from './AISettings'
 import { AICommand } from './AICommand'
+import { useEffect } from 'react'
 
 export function Sidebar() {
     const {
@@ -37,6 +38,19 @@ export function Sidebar() {
     const [editingLabelId, setEditingLabelId] = useState<string | null>(null)
     const [editLabelName, setEditLabelName] = useState('')
     const [editLabelColor, setEditLabelColor] = useState('#3b82f6')
+
+    useEffect(() => {
+        const handleOpenSettings = () => setIsAISettingsOpen(true)
+        const handleOpenHelp = () => setIsHelpOpen(true)
+
+        window.addEventListener('open-settings', handleOpenSettings)
+        window.addEventListener('open-help', handleOpenHelp)
+
+        return () => {
+            window.removeEventListener('open-settings', handleOpenSettings)
+            window.removeEventListener('open-help', handleOpenHelp)
+        }
+    }, [])
 
     const handleCreateLabel = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -130,8 +144,14 @@ export function Sidebar() {
                         placeholder="Search notes..."
                         value={state.searchQuery}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full pl-8 pr-3 py-2 text-xs rounded-xl bg-white dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700/50 text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 outline-none focus:border-indigo-400 dark:focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-300 dark:focus:ring-indigo-500/20 transition-all duration-200"
+                        className="w-full pl-8 pr-10 py-2 text-xs rounded-xl bg-white dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700/50 text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 outline-none focus:border-indigo-400 dark:focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-300 dark:focus:ring-indigo-500/20 transition-all duration-200"
                     />
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <kbd className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium text-zinc-400 bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-700">
+                            <span className="text-[12px] leading-none mb-[1px]">⌘</span>
+                            <span>K</span>
+                        </kbd>
+                    </div>
                 </div>
             </div>
 
@@ -142,6 +162,7 @@ export function Sidebar() {
                         <button
                             key={f}
                             onClick={() => setFilter(f)}
+
                             className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${state.filterMode === f
                                 ? 'bg-indigo-100 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30'
                                 : 'text-zinc-500 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/50'
