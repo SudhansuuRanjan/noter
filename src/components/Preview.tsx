@@ -3,18 +3,10 @@ import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeKatex from 'rehype-katex'
-import mermaid from 'mermaid'
 import { ExternalLink, X, Copy, Check } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
 import { useEffect, useRef, useState } from 'react'
-
-// Initialize mermaid
-mermaid.initialize({
-    startOnLoad: true,
-    theme: 'default',
-    securityLevel: 'loose',
-    fontFamily: 'inherit'
-})
+import { common } from 'lowlight'
 
 const CopyButton = ({ text }: { text: string }) => {
     const [copied, setCopied] = useState(false)
@@ -42,10 +34,29 @@ const MermaidRenderer = ({ content }: { content: string }) => {
     const containerRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
-        if (containerRef.current) {
-            containerRef.current.removeAttribute('data-processed')
-            mermaid.contentLoaded()
+        let isMounted = true;
+        const renderDiagram = async () => {
+            if (containerRef.current) {
+                try {
+                    // Dynamically import mermaid only when a diagram is rendered
+                    const m = (await import('mermaid')).default
+                    m.initialize({
+                        startOnLoad: false,
+                        theme: 'default',
+                        securityLevel: 'loose',
+                        fontFamily: 'inherit'
+                    })
+                    if (isMounted) {
+                        containerRef.current.removeAttribute('data-processed')
+                        await m.run({ nodes: [containerRef.current] })
+                    }
+                } catch (e) {
+                    console.error("Failed to render mermaid diagram", e)
+                }
+            }
         }
+        renderDiagram()
+        return () => { isMounted = false }
     }, [content])
 
     return (
@@ -96,7 +107,7 @@ export function Preview() {
                         urlTransform={(value: string) => value}
                         remarkPlugins={[remarkGfm, remarkMath]}
                         rehypePlugins={[
-                            rehypeHighlight,
+                            [rehypeHighlight, { languages: common }],
                             [rehypeKatex, {
                                 macros: {
                                     "\\f": "#1f(#2)"
