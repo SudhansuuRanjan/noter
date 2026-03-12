@@ -44,6 +44,7 @@ export interface ElectronAPI {
     aiChat: (options: { messages: any[], systemPrompt?: string, model?: string }) =>
         Promise<{ content?: string; usage?: any; error?: string }>
     windowArgs: { mode: string; noteId?: string }
+    platform: NodeJS.Platform
 }
 
 const getWindowArgs = () => {
@@ -82,7 +83,8 @@ const api: ElectronAPI = {
     hasKey: () => ipcRenderer.invoke('settings:hasKey'),
     aiChat: (options: { messages: any[], systemPrompt?: string, model?: string }) =>
         ipcRenderer.invoke('ai:chat', options),
-    windowArgs: getWindowArgs()
+    windowArgs: getWindowArgs(),
+    platform: process.platform
 }
 
 const updaterApi = {

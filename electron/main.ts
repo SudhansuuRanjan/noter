@@ -65,7 +65,7 @@ function createWindow(noteId?: string): BrowserWindow {
         backgroundColor: '#0e0e12',
         titleBarStyle: 'hiddenInset',
         trafficLightPosition: { x: 16, y: 16 },
-        autoHideMenuBar: isSecondary,
+        autoHideMenuBar: true,
         webPreferences: {
             preload: join(__dirname, '../preload/preload.js'),
             sandbox: false,

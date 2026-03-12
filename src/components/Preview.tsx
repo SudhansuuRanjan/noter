@@ -82,9 +82,20 @@ export function Preview() {
         return <div className="flex-1 h-full bg-white dark:bg-zinc-950" />
     }
 
+    const { state } = useNotes()
+
+    const getWidthClass = () => {
+        switch (state.previewWidth) {
+            case 'full': return 'w-full px-8'
+            case 'large': return 'max-w-6xl mx-auto px-8'
+            case 'medium':
+            default: return 'max-w-4xl mx-auto px-8'
+        }
+    }
+
     return (
-        <div ref={scrollRef} className="flex-1 h-full overflow-y-auto bg-white dark:bg-zinc-950 scroll-smooth">
-            <div className="max-w-4xl mx-auto px-8 py-6">
+        <div ref={scrollRef} className="flex-1 h-full overflow-y-auto bg-white dark:bg-zinc-950 scroll-smooth select-text cursor-text">
+            <div className={`${getWidthClass()} py-6 transition-all duration-300`}>
                 <div className="
           prose prose-zinc dark:prose-invert max-w-none
           prose-headings:font-semibold prose-headings:tracking-tight

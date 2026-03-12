@@ -77,10 +77,12 @@ export function Sidebar() {
     // Extract unique tags from all notes
     const allTags = Array.from(new Set(state.notes.flatMap(n => n.tags || []))).sort()
 
+    const isMac = window?.electronAPI?.platform === 'darwin'
+
     return (
         <div className="w-full h-full flex flex-col bg-zinc-50 dark:bg-zinc-900/50">
             {/* Header — traffic light space + drag region */}
-            <div className="pt-10 pb-3 px-4" style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
+            <div className={`${isMac ? 'pt-10' : 'pt-4'} pb-3 px-4`} style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
                         <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-600/20 border border-indigo-200 dark:border-indigo-500/30 flex items-center justify-center">

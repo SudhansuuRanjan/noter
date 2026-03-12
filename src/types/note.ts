@@ -47,6 +47,7 @@ export interface ElectronAPI {
     aiChat: (options: { messages: any[], systemPrompt?: string, model?: string }) =>
         Promise<{ content?: string; usage?: any; error?: string }>
     windowArgs: { mode: string; noteId?: string }
+    platform: string
 }
 
 declare global {

@@ -17,8 +17,9 @@ interface NotesState {
     isSidebarOpen: boolean
     sortBy: 'title' | 'createdAt' | 'updatedAt'
     sortOrder: 'asc' | 'desc'
-    accentColor: string,
+    accentColor: string
     version: string
+    previewWidth: 'medium' | 'large' | 'full'
 }
 
 type Action =
@@ -48,6 +49,7 @@ type Action =
     | { type: 'SET_SORT_BY'; sortBy: 'title' | 'createdAt' | 'updatedAt' }
     | { type: 'SET_SORT_ORDER'; sortOrder: 'asc' | 'desc' }
     | { type: 'SET_ACCENT_COLOR'; color: string }
+    | { type: 'SET_PREVIEW_WIDTH'; width: 'medium' | 'large' | 'full' }
 
 function notesReducer(state: NotesState, action: Action): NotesState {
     switch (action.type) {
@@ -176,6 +178,8 @@ function notesReducer(state: NotesState, action: Action): NotesState {
             return { ...state, sortOrder: action.sortOrder }
         case 'SET_ACCENT_COLOR':
             return { ...state, accentColor: action.color }
+        case 'SET_PREVIEW_WIDTH':
+            return { ...state, previewWidth: action.width }
         default:
             return state
     }
@@ -209,7 +213,8 @@ const initialState: NotesState = {
     isSidebarOpen: true,
     sortBy: 'updatedAt',
     sortOrder: 'desc',
-    accentColor: localStorage.getItem('noter-accent') || 'indigo'
+    accentColor: localStorage.getItem('noter-accent') || 'indigo',
+    previewWidth: (localStorage.getItem('noter-preview-width') as 'medium' | 'large' | 'full') || 'medium'
 }
 
 interface NotesContextValue {
@@ -245,6 +250,7 @@ interface NotesContextValue {
     openNoteByTitle: (title: string, inNewWindow?: boolean) => Promise<void>
     exportPDF: (id: string, title: string) => Promise<void>
     setAccentColor: (color: string) => void
+    setPreviewWidth: (width: 'medium' | 'large' | 'full') => void
 }
 
 const NotesContext = createContext<NotesContextValue | null>(null)
@@ -270,7 +276,8 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
 
         localStorage.setItem('noter-theme', state.theme)
         localStorage.setItem('noter-accent', state.accentColor)
-    }, [state.theme, state.accentColor])
+        localStorage.setItem('noter-preview-width', state.previewWidth)
+    }, [state.theme, state.accentColor, state.previewWidth])
 
     const loadNotes = useCallback(async () => {
         dispatch({ type: 'SET_LOADING', loading: true })
@@ -514,6 +521,10 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: 'SET_ACCENT_COLOR', color })
     }, [])
 
+    const setPreviewWidth = useCallback((width: 'medium' | 'large' | 'full') => {
+        dispatch({ type: 'SET_PREVIEW_WIDTH', width })
+    }, [])
+
     const activeNote = state.notes.find(n => n.id === state.activeNoteId)
 
     const sortedNotes = React.useMemo(() => {
@@ -580,7 +591,8 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             updateNoteLabel,
             openNoteByTitle,
             exportPDF,
-            setAccentColor
+            setAccentColor,
+            setPreviewWidth
         }}>
             {children}
         </NotesContext.Provider>

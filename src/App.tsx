@@ -69,12 +69,22 @@ function AppLayout() {
         return <SecondaryLayout />
     }
 
-    // Calculate responsive sizes
-    // We want the sidebar to be approx ~260px minimum and ~400px maximum
-    // But we also need to respect total window width to avoid taking too much space on very small windows
-    const minSizePercent = Math.max(22, Math.min(40, (260 / windowWidth) * 100))
-    const maxSizePercent = Math.max(30, Math.min(60, (400 / windowWidth) * 100))
-    const defaultSizePercent = Math.max(minSizePercent, Math.min(maxSizePercent, (300 / windowWidth) * 100))
+    // We want the sidebar width to feel natural relative to the window
+    // - On small screens (<768px), we want it to be a smaller percentage (e.g. 25-30%)
+    // - On large screens, we want it to cap at a comfortable width (e.g. 15-20%)
+    const isSmallScreen = windowWidth < 768
+
+    // Target base width in pixels
+    const targetWidth = isSmallScreen ? 200 : 280
+
+    // Calculate what percentage of the screen the target width represents
+    const calculatedPercent = (targetWidth / windowWidth) * 100
+
+    // Clamp the percentage so it doesn't get ridiculously small or large
+    const minSizePercent = Math.max(isSmallScreen ? 25 : 15, Math.min(isSmallScreen ? 40 : 30, calculatedPercent))
+    const maxSizePercent = isSmallScreen ? 50 : 40
+
+    const defaultSizePercent = minSizePercent
 
     return (
         <div className="flex h-screen w-screen overflow-hidden bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans">

@@ -14,12 +14,12 @@ const THEMES = [
     { id: 'emerald', name: 'Emerald', color: 'bg-emerald-500' },
     { id: 'violet', name: 'Violet', color: 'bg-violet-500' },
     { id: 'amber', name: 'Amber', color: 'bg-amber-500' },
-    { id: 'cyan', name: 'Cyan', color: 'bg-cyan-500' }, 
+    { id: 'cyan', name: 'Cyan', color: 'bg-cyan-500' },
     { id: 'pink', name: 'Pink', color: 'bg-pink-500' },
 ]
 
 export const AISettings: React.FC<AISettingsProps> = ({ isOpen, onClose }) => {
-    const { state, setAccentColor } = useNotes()
+    const { state, setAccentColor, setPreviewWidth } = useNotes()
     const [apiKey, setApiKey] = useState('')
     const [isSaving, setIsSaving] = useState(false)
     const [hasKey, setHasKey] = useState(false)
@@ -119,6 +119,33 @@ export const AISettings: React.FC<AISettingsProps> = ({ isOpen, onClose }) => {
                                             <span className={`text-[10px] font-medium ${state.accentColor === theme.id ? 'text-indigo-700 dark:text-indigo-400' : 'text-zinc-500 dark:text-zinc-400'}`}>
                                                 {theme.name}
                                             </span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="space-y-3 pt-4 border-t border-zinc-100 dark:border-zinc-800/60">
+                                <label className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1.5 px-1">
+                                    Editor Content Width
+                                </label>
+                                <div className="flex gap-3">
+                                    {[
+                                        { id: 'medium', label: 'Medium (Optimal)' },
+                                        { id: 'large', label: 'Large' },
+                                        { id: 'full', label: 'Full Width' }
+                                    ].map(option => (
+                                        <button
+                                            key={option.id}
+                                            onClick={() => setPreviewWidth(option.id as 'medium' | 'large' | 'full')}
+                                            className={`
+                                                flex-1 py-2 px-3 text-xs font-medium rounded-xl border transition-all
+                                                ${state.previewWidth === option.id
+                                                    ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400'
+                                                    : 'bg-white border-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-700'
+                                                }
+                                            `}
+                                        >
+                                            {option.label}
                                         </button>
                                     ))}
                                 </div>
