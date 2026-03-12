@@ -119,13 +119,13 @@ app.whenReady().then(() => {
         return new Response('Not found', { status: 404 })
     })
 
-    const mainWindow = createWindow()
-    setupAutoUpdater(mainWindow)
+    createWindow()
+    setupAutoUpdater()
 
     app.on('activate', function () {
         if (BrowserWindow.getAllWindows().filter(w => !w.isDestroyed()).length === 0) {
-            const win = createWindow()
-            setupAutoUpdater(win)
+            createWindow()
+            setupAutoUpdater()
         }
     })
 })

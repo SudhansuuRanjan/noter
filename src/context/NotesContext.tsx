@@ -17,7 +17,8 @@ interface NotesState {
     isSidebarOpen: boolean
     sortBy: 'title' | 'createdAt' | 'updatedAt'
     sortOrder: 'asc' | 'desc'
-    accentColor: string
+    accentColor: string,
+    version: string
 }
 
 type Action =
@@ -192,6 +193,7 @@ function extractPreview(content: string): string {
 }
 
 const initialState: NotesState = {
+    version: '1.0.1',
     notes: [],
     labels: [],
     activeNoteId: null,

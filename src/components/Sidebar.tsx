@@ -86,7 +86,7 @@ export function Sidebar() {
                         <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-600/20 border border-indigo-200 dark:border-indigo-500/30 flex items-center justify-center">
                             <FileText size={14} className="text-indigo-600 dark:text-indigo-400" />
                         </div>
-                        <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 tracking-wide">Noter</span>
+                        <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 tracking-wide">Noter <span className="text-xs text-zinc-400 dark:text-zinc-500">v{state.version}</span></div>
                     </div>
                     <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
                         <ThemeToggle />

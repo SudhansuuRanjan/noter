@@ -1,8 +1,12 @@
 import { autoUpdater } from 'electron-updater'
 import { BrowserWindow, ipcMain } from 'electron'
 
-export function setupAutoUpdater(mainWindow: BrowserWindow): void {
+let isUpdaterSetup = false;
+
+export function setupAutoUpdater(): void {
     if (process.env.NODE_ENV === 'development') return
+    if (isUpdaterSetup) return;
+    isUpdaterSetup = true;
 
     autoUpdater.autoDownload = true
     autoUpdater.autoInstallOnAppQuit = true
@@ -11,9 +15,11 @@ export function setupAutoUpdater(mainWindow: BrowserWindow): void {
     process.env.ELECTRON_UPDATER_ALLOW_HTTP = 'true'
 
     const sendToRenderer = (channel: string, data?: any) => {
-        if (mainWindow && !mainWindow.isDestroyed()) {
-            mainWindow.webContents.send(channel, data)
-        }
+        BrowserWindow.getAllWindows().forEach((win) => {
+            if (!win.isDestroyed()) {
+                win.webContents.send(channel, data)
+            }
+        })
     }
 
     autoUpdater.on('checking-for-update', () => {
