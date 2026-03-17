@@ -20,6 +20,7 @@ interface NotesState {
     accentColor: string
     version: string
     previewWidth: 'medium' | 'large' | 'full'
+    historySyncState: 'synced' | 'pending' | 'syncing'
 }
 
 type Action =
@@ -50,6 +51,7 @@ type Action =
     | { type: 'SET_SORT_ORDER'; sortOrder: 'asc' | 'desc' }
     | { type: 'SET_ACCENT_COLOR'; color: string }
     | { type: 'SET_PREVIEW_WIDTH'; width: 'medium' | 'large' | 'full' }
+    | { type: 'SET_HISTORY_SYNC_STATE'; syncState: 'synced' | 'pending' | 'syncing' }
 
 function notesReducer(state: NotesState, action: Action): NotesState {
     switch (action.type) {
@@ -180,6 +182,8 @@ function notesReducer(state: NotesState, action: Action): NotesState {
             return { ...state, accentColor: action.color }
         case 'SET_PREVIEW_WIDTH':
             return { ...state, previewWidth: action.width }
+        case 'SET_HISTORY_SYNC_STATE':
+            return { ...state, historySyncState: action.syncState }
         default:
             return state
     }
@@ -215,6 +219,7 @@ const initialState: NotesState = {
     sortOrder: 'desc',
     accentColor: localStorage.getItem('noter-accent') || 'indigo',
     previewWidth: (localStorage.getItem('noter-preview-width') as 'medium' | 'large' | 'full') || 'medium'
+    , historySyncState: 'synced'
 }
 
 interface NotesContextValue {
@@ -251,6 +256,8 @@ interface NotesContextValue {
     exportPDF: (id: string, title: string) => Promise<void>
     setAccentColor: (color: string) => void
     setPreviewWidth: (width: 'medium' | 'large' | 'full') => void
+    saveVersionHistory: () => Promise<boolean>
+    ensureHistorySynced: (nextNoteId?: string | null) => Promise<boolean>
 }
 
 const NotesContext = createContext<NotesContextValue | null>(null)
@@ -259,6 +266,7 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
     const [state, dispatch] = useReducer(notesReducer, initialState)
     const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const pendingNoteContentRef = useRef<Record<string, string>>({})
+    const lastHistorySyncedContentRef = useRef<Record<string, string>>({})
 
     // Apply theme to document
     useEffect(() => {
@@ -283,6 +291,11 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
     const loadNotes = useCallback(async () => {
         dispatch({ type: 'SET_LOADING', loading: true })
         const notes = await window.electronAPI.listNotes()
+        const syncedMap = notes.reduce<Record<string, string>>((acc, note) => {
+            acc[note.id] = note.content
+            return acc
+        }, {})
+        lastHistorySyncedContentRef.current = syncedMap
         dispatch({ type: 'SET_NOTES', notes })
         const labels = await window.electronAPI.listLabels()
         dispatch({ type: 'SET_LABELS', labels })
@@ -408,6 +421,7 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
 
     const updateNote = useCallback((id: string, content: string) => {
         pendingNoteContentRef.current[id] = content
+        dispatch({ type: 'SET_HISTORY_SYNC_STATE', syncState: 'pending' })
         dispatch({ type: 'SET_SAVING', saving: true })
         if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
         saveTimerRef.current = setTimeout(async () => {
@@ -416,6 +430,44 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             dispatch({ type: 'UPDATE_NOTE', id, content, updatedAt: result.updatedAt })
         }, 800)
     }, [])
+
+    const saveVersionHistory = useCallback(async () => {
+        const note = state.notes.find(n => n.id === state.activeNoteId)
+        if (!note) return false
+
+        const content = pendingNoteContentRef.current[note.id] ?? note.content
+        const lastSyncedContent = lastHistorySyncedContentRef.current[note.id]
+
+        if (lastSyncedContent === content) {
+            dispatch({ type: 'SET_HISTORY_SYNC_STATE', syncState: 'synced' })
+            return true
+        }
+
+        dispatch({ type: 'SET_HISTORY_SYNC_STATE', syncState: 'syncing' })
+        await window.electronAPI.saveHistoryVersion(note.id, content)
+        lastHistorySyncedContentRef.current[note.id] = content
+        dispatch({ type: 'SET_HISTORY_SYNC_STATE', syncState: 'synced' })
+        return true
+    }, [state.notes, state.activeNoteId])
+
+    const ensureHistorySynced = useCallback(async (_nextNoteId?: string | null) => {
+        const note = state.notes.find(n => n.id === state.activeNoteId)
+        if (!note) return true
+
+        const content = pendingNoteContentRef.current[note.id] ?? note.content
+        const lastSyncedContent = lastHistorySyncedContentRef.current[note.id]
+
+        if (content === lastSyncedContent) {
+            dispatch({ type: 'SET_HISTORY_SYNC_STATE', syncState: 'synced' })
+            return true
+        }
+
+        dispatch({ type: 'SET_HISTORY_SYNC_STATE', syncState: 'syncing' })
+        await window.electronAPI.saveHistoryVersion(note.id, content)
+        lastHistorySyncedContentRef.current[note.id] = content
+        dispatch({ type: 'SET_HISTORY_SYNC_STATE', syncState: 'synced' })
+        return true
+    }, [state.notes, state.activeNoteId])
 
     useEffect(() => {
         return () => {
@@ -456,8 +508,20 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
     }, [])
 
     const setActiveNote = useCallback((id: string | null) => {
+        const currentId = state.activeNoteId
+        if (id && currentId && id !== currentId) {
+            const currentNote = state.notes.find(n => n.id === currentId)
+            if (currentNote) {
+                const content = pendingNoteContentRef.current[currentId] ?? currentNote.content
+                const lastSyncedContent = lastHistorySyncedContentRef.current[currentId]
+                dispatch({
+                    type: 'SET_HISTORY_SYNC_STATE',
+                    syncState: content === lastSyncedContent ? 'synced' : 'pending'
+                })
+            }
+        }
         dispatch({ type: 'SET_ACTIVE', id })
-    }, [])
+    }, [state.activeNoteId, state.notes])
 
     const toggleSidebar = useCallback(() => {
         dispatch({ type: 'TOGGLE_SIDEBAR' })
@@ -622,7 +686,9 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             openNoteByTitle,
             exportPDF,
             setAccentColor,
-            setPreviewWidth
+            setPreviewWidth,
+            saveVersionHistory,
+            ensureHistorySynced
         }}>
             {children}
         </NotesContext.Provider>

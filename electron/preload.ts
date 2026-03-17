@@ -38,6 +38,7 @@ export interface ElectronAPI {
     saveAttachment: (buffer: ArrayBuffer, filename: string) => Promise<string>
     getHistory: (id: string) => Promise<{ timestamp: number, preview: string, path: string }[]>
     getRevision: (path: string) => Promise<string | null>
+    saveHistoryVersion: (id: string, content: string) => Promise<{ timestamp: number }>
     openInNewWindow: (id: string) => Promise<void>
     saveKey: (key: string) => Promise<boolean>
     hasKey: () => Promise<boolean>
@@ -78,6 +79,7 @@ const api: ElectronAPI = {
     saveAttachment: (buffer: ArrayBuffer, filename: string) => ipcRenderer.invoke('attachments:save', buffer, filename),
     getHistory: (id: string) => ipcRenderer.invoke('notes:getHistory', id),
     getRevision: (path: string) => ipcRenderer.invoke('notes:getRevision', path),
+    saveHistoryVersion: (id: string, content: string) => ipcRenderer.invoke('notes:saveHistoryVersion', { id, content }),
     openInNewWindow: (id: string) => ipcRenderer.invoke('notes:openInNewWindow', id),
     saveKey: (key: string) => ipcRenderer.invoke('settings:saveKey', key),
     hasKey: () => ipcRenderer.invoke('settings:hasKey'),

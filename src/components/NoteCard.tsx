@@ -25,13 +25,19 @@ function formatDate(dateStr: string) {
 }
 
 export function NoteCard({ note, isActive }: NoteCardProps) {
-    const { state, setActiveNote, toggleStar, togglePin, setDeleteConfirm } = useNotes()
+    const { state, setActiveNote, toggleStar, togglePin, setDeleteConfirm, ensureHistorySynced } = useNotes()
 
     const label = note.labelId ? state.labels.find(l => l.id === note.labelId) : null
 
     return (
         <div
-            onClick={() => setActiveNote(note.id)}
+            onClick={async () => {
+                if (note.id === state.activeNoteId) return
+                const canOpen = await ensureHistorySynced(note.id)
+                if (canOpen) {
+                    setActiveNote(note.id)
+                }
+            }}
             className={`
         group relative px-3 py-3 rounded-xl cursor-pointer transition-all duration-150 mb-1
         ${isActive

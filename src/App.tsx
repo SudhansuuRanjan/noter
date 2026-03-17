@@ -41,7 +41,7 @@ function SecondaryLayout() {
 }
 
 function AppLayout() {
-    const { state, activeNote, createNote } = useNotes()
+    const { state, activeNote, createNote, ensureHistorySynced } = useNotes()
     const [windowWidth, setWindowWidth] = useState(window.innerWidth)
 
     useEffect(() => {
@@ -55,12 +55,16 @@ function AppLayout() {
         const handleGlobalKeyDown = (e: KeyboardEvent) => {
             if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'n') {
                 e.preventDefault()
-                createNote()
+                ensureHistorySynced().then(canOpen => {
+                    if (canOpen) {
+                        createNote()
+                    }
+                })
             }
         }
         window.addEventListener('keydown', handleGlobalKeyDown)
         return () => window.removeEventListener('keydown', handleGlobalKeyDown)
-    }, [createNote])
+    }, [createNote, ensureHistorySynced])
 
     // Robust detection for Electron/Vite
     const mode = window.electronAPI.windowArgs.mode

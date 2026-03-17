@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { Edit2, Eye, Columns, Download, Trash2, Star, Save, Tag, Pin, History as HistoryIcon, PanelLeft, ExternalLink, Sparkles, FileText, Link2, Search } from 'lucide-react'
+import { Edit2, Eye, Columns, Download, Trash2, Star, Save, Tag, Pin, History as HistoryIcon, PanelLeft, ExternalLink, Sparkles, FileText, Link2, Search, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
 import { ViewMode } from '../types/note'
 import { HistoryModal } from './HistoryModal'
@@ -11,7 +11,7 @@ const viewModes: { mode: ViewMode; icon: React.ReactNode; label: string }[] = [
 ]
 
 export function Toolbar() {
-    const { state, activeNote, setViewMode, toggleStar, togglePin, setDeleteConfirm, updateNoteLabel, toggleSidebar } = useNotes()
+    const { state, activeNote, setViewMode, toggleStar, togglePin, setDeleteConfirm, updateNoteLabel, toggleSidebar, saveVersionHistory } = useNotes()
     const [isLabelMenuOpen, setIsLabelMenuOpen] = useState(false)
     const [showHistory, setShowHistory] = useState(false)
     const [isLinkMenuOpen, setIsLinkMenuOpen] = useState(false)
@@ -28,6 +28,11 @@ export function Toolbar() {
     }, [])
 
     const activeLabel = activeNote?.labelId ? state.labels.find(l => l.id === activeNote.labelId) : null
+    const historySyncLabel = state.historySyncState === 'synced'
+        ? 'History synced'
+        : state.historySyncState === 'syncing'
+            ? 'Syncing history…'
+            : 'History not synced'
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -85,7 +90,7 @@ export function Toolbar() {
                                 }`}
                         >
                             {icon}
-                            {label}
+                            {mode === state.viewMode && label}
                         </button>
                     ))}
                 </div>
@@ -136,6 +141,21 @@ export function Toolbar() {
                 </div>
 
                 <div className="w-px h-5 bg-zinc-200 dark:bg-zinc-700/50 mx-1" />
+
+                <button
+                    onClick={() => saveVersionHistory()}
+                    disabled={state.historySyncState === 'syncing' || state.historySyncState === 'synced'}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${state.historySyncState === 'synced'
+                        ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 cursor-default'
+                        : state.historySyncState === 'syncing'
+                            ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 cursor-wait'
+                            : 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-500/20'
+                        }`}
+                    title="Save current content to version history"
+                >
+                    {state.historySyncState === 'syncing' ? <RefreshCw size={14} className="animate-spin" /> : <HistoryIcon size={14} />}
+                    {state.historySyncState === 'synced' ? 'History Saved' : 'Save Version'}
+                </button>
 
                 {(state.viewMode === 'edit' || state.viewMode === 'split') && (
                     <div className="relative" ref={linkMenuRef}>

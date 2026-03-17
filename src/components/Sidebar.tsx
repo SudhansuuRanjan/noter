@@ -23,7 +23,8 @@ export function Sidebar() {
         updateLabel,
         deleteLabel,
         setSortBy,
-        setSortOrder
+        setSortOrder,
+        ensureHistorySynced
     } = useNotes()
 
     const [isLabelsExpanded, setIsLabelsExpanded] = useState(false)
@@ -112,7 +113,12 @@ export function Sidebar() {
                 {/* New Note + Daily Note + Import */}
                 <div className="flex gap-2" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
                     <button
-                        onClick={createNote}
+                        onClick={async () => {
+                            const canOpen = await ensureHistorySynced()
+                            if (canOpen) {
+                                await createNote()
+                            }
+                        }}
                         className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition-all duration-200 shadow-lg shadow-indigo-600/20 active:scale-95"
                         title="Create regular note"
                     >
@@ -120,7 +126,12 @@ export function Sidebar() {
                         New Note
                     </button>
                     <button
-                        onClick={openDailyNote}
+                        onClick={async () => {
+                            const canOpen = await ensureHistorySynced()
+                            if (canOpen) {
+                                await openDailyNote()
+                            }
+                        }}
                         className="py-2 px-3 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 text-xs font-medium transition-all duration-200 active:scale-95"
                         title="Daily Note"
                     >

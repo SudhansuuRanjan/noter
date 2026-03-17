@@ -194,27 +194,6 @@ ipcMain.handle('notes:write', (_event, { id, content }: { id: string; content: s
     const filePath = join(NOTES_DIR, `${id}.md`)
     const isNew = !existsSync(filePath)
 
-    // Save history backup if content changed
-    if (!isNew) {
-        const existingContent = readFileSync(filePath, 'utf-8')
-        if (existingContent !== content) {
-            const noteHistoryDir = join(HISTORY_DIR, id)
-            if (!existsSync(noteHistoryDir)) mkdirSync(noteHistoryDir, { recursive: true })
-
-            // Optimization: Only backup if last backup was > 60s ago
-            const historyFiles = readdirSync(noteHistoryDir).filter(f => f.endsWith('.md'))
-            const lastBackupTime = historyFiles.length > 0
-                ? Math.max(...historyFiles.map(f => Number(f.replace('.md', ''))))
-                : 0
-
-            const nowTime = Date.now()
-            if (nowTime - lastBackupTime > 60000) {
-                const backupPath = join(noteHistoryDir, `${nowTime}.md`)
-                writeFileSync(backupPath, existingContent, 'utf-8')
-            }
-        }
-    }
-
     writeFileSync(filePath, content, 'utf-8')
 
     // Parse tags from content
@@ -232,6 +211,18 @@ ipcMain.handle('notes:write', (_event, { id, content }: { id: string; content: s
     writeMeta(meta)
 
     return { id, isNew, updatedAt: meta[id].updatedAt }
+})
+
+ipcMain.handle('notes:saveHistoryVersion', (_event, { id, content }: { id: string; content: string }) => {
+    ensureNotesDir()
+    const noteHistoryDir = join(HISTORY_DIR, id)
+    if (!existsSync(noteHistoryDir)) mkdirSync(noteHistoryDir, { recursive: true })
+
+    const timestamp = Date.now()
+    const backupPath = join(noteHistoryDir, `${timestamp}.md`)
+    writeFileSync(backupPath, content, 'utf-8')
+
+    return { timestamp }
 })
 
 // IPC: Attachments Subsystem
