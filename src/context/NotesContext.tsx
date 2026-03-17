@@ -197,7 +197,7 @@ function extractPreview(content: string): string {
 }
 
 const initialState: NotesState = {
-    version: '1.0.1',
+    version: '1.0.2',
     notes: [],
     labels: [],
     activeNoteId: null,
