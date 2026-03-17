@@ -258,6 +258,7 @@ const NotesContext = createContext<NotesContextValue | null>(null)
 export function NotesProvider({ children }: { children: React.ReactNode }) {
     const [state, dispatch] = useReducer(notesReducer, initialState)
     const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const pendingNoteContentRef = useRef<Record<string, string>>({})
 
     // Apply theme to document
     useEffect(() => {
@@ -406,12 +407,22 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
     }, [state.notes])
 
     const updateNote = useCallback((id: string, content: string) => {
+        pendingNoteContentRef.current[id] = content
         dispatch({ type: 'SET_SAVING', saving: true })
         if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
         saveTimerRef.current = setTimeout(async () => {
             const result = await window.electronAPI.writeNote(id, content)
+            delete pendingNoteContentRef.current[id]
             dispatch({ type: 'UPDATE_NOTE', id, content, updatedAt: result.updatedAt })
         }, 800)
+    }, [])
+
+    useEffect(() => {
+        return () => {
+            if (saveTimerRef.current) {
+                clearTimeout(saveTimerRef.current)
+            }
+        }
     }, [])
 
     const deleteNote = useCallback(async (id: string) => {
@@ -525,7 +536,26 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: 'SET_PREVIEW_WIDTH', width })
     }, [])
 
-    const activeNote = state.notes.find(n => n.id === state.activeNoteId)
+    const activeNote = React.useMemo(() => {
+        const note = state.notes.find(n => n.id === state.activeNoteId)
+        if (!note) return undefined
+
+        const pendingContent = pendingNoteContentRef.current[note.id]
+        if (pendingContent === undefined || pendingContent === note.content) {
+            return note
+        }
+
+        const tagsMatch = Array.from(pendingContent.matchAll(/(?:^|\s)(#[a-zA-Z0-9_-]+)/g))
+        const tags = tagsMatch.length > 0 ? Array.from(new Set(tagsMatch.map(m => m[1]))) : []
+
+        return {
+            ...note,
+            content: pendingContent,
+            title: extractTitle(pendingContent),
+            preview: extractPreview(pendingContent),
+            tags
+        }
+    }, [state.notes, state.activeNoteId])
 
     const sortedNotes = React.useMemo(() => {
         const filtered = state.notes.filter(note => {
