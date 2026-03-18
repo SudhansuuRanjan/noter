@@ -7,7 +7,7 @@ import { EditorView, ViewPlugin, Decoration, MatchDecorator, ViewUpdate } from '
 import { search } from '@codemirror/search'
 import { useNotes } from '../context/NotesContext'
 import { useCallback, useRef, useState, useEffect } from 'react'
-import { Sparkles, Languages, Wand2 } from 'lucide-react'
+import { Sparkles, Languages, Wand2, Loader2 } from 'lucide-react'
 import { AICommand } from './AICommand'
 
 const customTheme = EditorView.theme({
@@ -44,6 +44,7 @@ export function Editor() {
     const [selection, setSelection] = useState<{ text: string, from: number, to: number } | null>(null)
     const [toolbarPos, setToolbarPos] = useState<{ x: number, y: number } | null>(null)
     const [isAICommandOpen, setIsAICommandOpen] = useState(false)
+    const [loadingAction, setLoadingAction] = useState<'grammar' | 'rephrase' | null>(null)
 
     const activeNoteId = activeNote?.id
     const handleChange = useCallback((value: string) => {
@@ -107,36 +108,7 @@ export function Editor() {
         }
     })
 
-    useEffect(() => {
-        const handleSelectionChange = () => {
-            if (!viewRef.current) return
-            const { from, to } = viewRef.current.state.selection.main
-            if (from !== to) {
-                const text = viewRef.current.state.sliceDoc(from, to)
-                setSelection({ text, from, to })
 
-                const coords = viewRef.current.coordsAtPos(from)
-                if (coords) {
-                    setToolbarPos({ x: coords.left, y: coords.top - 40 })
-                }
-            } else {
-                setSelection(null)
-                setToolbarPos(null)
-            }
-        }
-
-        const view = viewRef.current
-        if (view) {
-            view.dom.addEventListener('mouseup', handleSelectionChange)
-            view.dom.addEventListener('keyup', handleSelectionChange)
-        }
-        return () => {
-            if (view) {
-                view.dom.removeEventListener('mouseup', handleSelectionChange)
-                view.dom.removeEventListener('keyup', handleSelectionChange)
-            }
-        }
-    }, [activeNote?.id])
 
     useEffect(() => {
         const handleOpenAI = () => setIsAICommandOpen(true)
@@ -192,19 +164,24 @@ export function Editor() {
     }
 
     const quickAction = async (type: 'grammar' | 'rephrase') => {
-        if (!selection) return
+        if (!selection || loadingAction) return
+        setLoadingAction(type)
         const systemPrompt = 'You are a helpful AI writing assistant. Return ONLY the transformed text in Markdown.'
         const actionPrompt = type === 'grammar'
             ? `Fix grammar/spelling in this text:\n\n${selection.text}`
             : `Rephrase this text to be more professional:\n\n${selection.text}`
 
-        const response = await window.electronAPI.aiChat({
-            messages: [{ role: 'user', content: actionPrompt }],
-            systemPrompt
-        })
+        try {
+            const response = await window.electronAPI.aiChat({
+                messages: [{ role: 'user', content: actionPrompt }],
+                systemPrompt
+            })
 
-        if (response.content) {
-            applyAIResult(response.content)
+            if (response.content) {
+                applyAIResult(response.content)
+            }
+        } finally {
+            setLoadingAction(null)
         }
     }
 
@@ -228,6 +205,24 @@ export function Editor() {
             <CodeMirror
                 value={activeNote.content}
                 onChange={handleChange}
+                onUpdate={(update) => {
+                    if (update.selectionSet || update.docChanged) {
+                        const { from, to } = update.state.selection.main
+                        if (from !== to) {
+                            const text = update.state.sliceDoc(from, to)
+                            setSelection({ text, from, to })
+
+                            // Get coords directly from the view
+                            const coords = update.view.coordsAtPos(from)
+                            if (coords) {
+                                setToolbarPos({ x: coords.left, y: coords.top - 40 })
+                            }
+                        } else {
+                            setSelection(null)
+                            setToolbarPos(null)
+                        }
+                    }
+                }}
                 theme={state.theme === 'dark' ? dracula : githubLight}
                 onCreateEditor={(view) => viewRef.current = view}
                 extensions={[
@@ -258,21 +253,32 @@ export function Editor() {
                 >
                     <button
                         onClick={() => quickAction('grammar')}
-                        className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded flex items-center gap-1.5 text-[10px] font-medium text-zinc-600 dark:text-zinc-400 transition-colors"
+                        disabled={loadingAction !== null}
+                        className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded flex items-center gap-1.5 text-[10px] font-medium text-zinc-600 dark:text-zinc-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <Languages className="w-3 h-3 text-indigo-500" /> Fix Grammar
+                        {loadingAction === 'grammar' ? (
+                            <Loader2 className="w-3 h-3 text-indigo-500 animate-spin" />
+                        ) : (
+                            <Languages className="w-3 h-3 text-indigo-500" />
+                        )} Fix Grammar
                     </button>
                     <div className="w-px h-3 bg-zinc-200 dark:bg-zinc-800 mx-0.5" />
                     <button
                         onClick={() => quickAction('rephrase')}
-                        className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded flex items-center gap-1.5 text-[10px] font-medium text-zinc-600 dark:text-zinc-400 transition-colors"
+                        disabled={loadingAction !== null}
+                        className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded flex items-center gap-1.5 text-[10px] font-medium text-zinc-600 dark:text-zinc-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <Wand2 className="w-3 h-3 text-indigo-500" /> Rephrase
+                        {loadingAction === 'rephrase' ? (
+                            <Loader2 className="w-3 h-3 text-indigo-500 animate-spin" />
+                        ) : (
+                            <Wand2 className="w-3 h-3 text-indigo-500" />
+                        )} Rephrase
                     </button>
                     <div className="w-px h-3 bg-zinc-200 dark:bg-zinc-800 mx-0.5" />
                     <button
                         onClick={() => setIsAICommandOpen(true)}
-                        className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded flex items-center gap-1.5 text-[10px] font-medium text-zinc-600 dark:text-zinc-400 transition-colors"
+                        disabled={loadingAction !== null}
+                        className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded flex items-center gap-1.5 text-[10px] font-medium text-zinc-600 dark:text-zinc-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <Sparkles className="w-3 h-3 text-indigo-500" /> Ask AI
                     </button>
