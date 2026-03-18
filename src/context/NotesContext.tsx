@@ -425,9 +425,15 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: 'SET_SAVING', saving: true })
         if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
         saveTimerRef.current = setTimeout(async () => {
-            const result = await window.electronAPI.writeNote(id, content)
-            delete pendingNoteContentRef.current[id]
-            dispatch({ type: 'UPDATE_NOTE', id, content, updatedAt: result.updatedAt })
+            // Capture the content we're about to save
+            const contentToSave = content
+            const result = await window.electronAPI.writeNote(id, contentToSave)
+            // Only clear pending ref if no new content was typed while saving
+            // (i.e., the pending content is still the same as what we saved)
+            if (pendingNoteContentRef.current[id] === contentToSave) {
+                delete pendingNoteContentRef.current[id]
+            }
+            dispatch({ type: 'UPDATE_NOTE', id, content: contentToSave, updatedAt: result.updatedAt })
         }, 800)
     }, [])
 

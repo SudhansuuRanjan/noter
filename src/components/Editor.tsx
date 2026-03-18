@@ -19,7 +19,7 @@ const customTheme = EditorView.theme({
     '&.cm-focused': { outline: 'none !important' },
     '.cm-gutters': { display: 'none' },
     '.cm-cursor': { borderLeftColor: '#6366f1' }
-})
+}) 
 
 const mathDecorator = new MatchDecorator({
     regexp: /\$\$[\s\S]*?\$\$|\$[^\n$]*?\$/g,
@@ -45,11 +45,12 @@ export function Editor() {
     const [toolbarPos, setToolbarPos] = useState<{ x: number, y: number } | null>(null)
     const [isAICommandOpen, setIsAICommandOpen] = useState(false)
 
+    const activeNoteId = activeNote?.id
     const handleChange = useCallback((value: string) => {
-        if (activeNote) {
-            updateNote(activeNote.id, value)
+        if (activeNoteId) {
+            updateNote(activeNoteId, value)
         }
-    }, [activeNote, updateNote])
+    }, [activeNoteId, updateNote])
 
     const handleFileUpload = async (file: File, view: EditorView, insertAt?: number) => {
         if (!file.type.startsWith('image/')) return false
