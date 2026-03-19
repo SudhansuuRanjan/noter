@@ -25,6 +25,7 @@ export const AICommand: React.FC<AICommandProps> = ({
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [isCopied, setIsCopied] = useState(false)
+    const [hasKey, setHasKey] = useState<boolean | null>(null)
     const { activeNote } = useNotes()
 
     useHotkey('Escape', () => {
@@ -123,36 +124,55 @@ export const AICommand: React.FC<AICommandProps> = ({
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                    <div className="space-y-3">
-                        <div className="flex flex-wrap gap-2">
-                            <button onClick={() => handleAction('rephrase')} className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors">
-                                <RefreshCw className="w-3.5 h-3.5 text-indigo-500" /> Rephrase
-                            </button>
-                            <button onClick={() => handleAction('summarize')} className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors">
-                                <BrainCircuit className="w-3.5 h-3.5 text-indigo-500" /> Summarize
-                            </button>
-                            <button onClick={() => handleAction('grammar')} className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors">
-                                <Languages className="w-3.5 h-3.5 text-indigo-500" /> Fix Grammar
-                            </button>
-                            <button onClick={() => handleAction('continue')} className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors">
-                                <Wand2 className="w-3.5 h-3.5 text-indigo-500" /> Continue Writing
-                            </button>
+                    {hasKey === false && (
+                        <div className="p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl flex items-start gap-3">
+                            <Wand2 className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                            <div className="flex-1">
+                                <h4 className="text-sm font-semibold text-amber-800 dark:text-amber-300">API Key Required</h4>
+                                <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">Please configure your AI API key in Settings to use the AI command palette.</p>
+                                <button
+                                    onClick={() => { withViewTransition(onClose); window.dispatchEvent(new Event('open-settings')); }}
+                                    className="mt-2 px-3 py-1.5 bg-amber-200 hover:bg-amber-300 dark:bg-amber-500/20 dark:hover:bg-amber-500/30 text-amber-800 dark:text-amber-300 text-xs font-semibold rounded-lg transition-colors"
+                                >
+                                    Open Settings
+                                </button>
+                            </div>
                         </div>
+                    )}
 
-                        <div className="relative">
-                            <textarea
-                                value={prompt}
-                                onChange={(e) => setPrompt(e.target.value)}
-                                placeholder="What should the AI do? (e.g., 'Write a poem about space')"
-                                className="w-full h-24 p-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none transition-all"
-                            />
-                            <button
-                                onClick={() => handleRunAI(prompt)}
-                                disabled={isLoading || !prompt.trim()}
-                                className="absolute bottom-3 right-3 p-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg shadow transition-all group"
-                            >
-                                <Send className="w-4 h-4 group-active:translate-x-1 group-active:-translate-y-1 transition-transform" />
-                            </button>
+                    <div className={hasKey === false ? 'opacity-50 pointer-events-none' : ''}>
+                        <div className="space-y-3">
+                            <div className="flex flex-wrap gap-2">
+                                <button onClick={() => handleAction('rephrase')} disabled={!hasKey || isLoading} className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors disabled:opacity-50">
+                                    <RefreshCw className="w-3.5 h-3.5 text-indigo-500" /> Rephrase
+                                </button>
+                                <button onClick={() => handleAction('summarize')} disabled={!hasKey || isLoading} className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors disabled:opacity-50">
+                                    <BrainCircuit className="w-3.5 h-3.5 text-indigo-500" /> Summarize
+                                </button>
+                                <button onClick={() => handleAction('grammar')} disabled={!hasKey || isLoading} className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors disabled:opacity-50">
+                                    <Languages className="w-3.5 h-3.5 text-indigo-500" /> Fix Grammar
+                                </button>
+                                <button onClick={() => handleAction('continue')} disabled={!hasKey || isLoading} className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors disabled:opacity-50">
+                                    <Wand2 className="w-3.5 h-3.5 text-indigo-500" /> Continue Writing
+                                </button>
+                            </div>
+
+                            <div className="relative">
+                                <textarea
+                                    value={prompt}
+                                    onChange={(e) => setPrompt(e.target.value)}
+                                    disabled={!hasKey || isLoading}
+                                    placeholder="What should the AI do? (e.g., 'Write a poem about space')"
+                                    className="w-full h-24 p-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none transition-all disabled:opacity-50"
+                                />
+                                <button
+                                    onClick={() => handleRunAI(prompt)}
+                                    disabled={isLoading || !prompt.trim() || !hasKey}
+                                    className="absolute bottom-3 right-3 p-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg shadow transition-all group"
+                                >
+                                    <Send className="w-4 h-4 group-active:translate-x-1 group-active:-translate-y-1 transition-transform" />
+                                </button>
+                            </div>
                         </div>
                     </div>
 

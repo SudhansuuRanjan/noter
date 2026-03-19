@@ -9,6 +9,7 @@ import { useNotes } from '../context/NotesContext'
 import { useCallback, useRef, useState, useEffect } from 'react'
 import { Sparkles, Languages, Wand2, Loader2 } from 'lucide-react'
 import { AICommand } from './AICommand'
+import { aiSuggestionSupport, setAISuggestion } from '../extensions/aiWidget'
 
 const customTheme = EditorView.theme({
     '&': { height: '100%' },
@@ -45,6 +46,13 @@ export function Editor() {
     const [toolbarPos, setToolbarPos] = useState<{ x: number, y: number } | null>(null)
     const [isAICommandOpen, setIsAICommandOpen] = useState(false)
     const [loadingAction, setLoadingAction] = useState<'grammar' | 'rephrase' | null>(null)
+    const [hasKey, setHasKey] = useState(false)
+
+    useEffect(() => {
+        if (toolbarPos && selection) {
+            window.electronAPI.hasKey().then(setHasKey)
+        }
+    }, [toolbarPos, selection])
 
     const activeNoteId = activeNote?.id
     const handleChange = useCallback((value: string) => {
@@ -147,24 +155,25 @@ export function Editor() {
 
         console.log('Dispatching changes:', { from, to })
 
+        // Dispatch the suggestion decoration instead of actual edits
         viewRef.current.dispatch({
-            changes: { from, to, insert: result },
-            selection: { anchor: from + result.length },
-            scrollIntoView: true
+            effects: setAISuggestion.of({ from, to, text: result })
         })
-
-        // Also explicitly update the note content to be safe
-        if (activeNote) {
-            const newContent = activeNote.content.slice(0, from) + result + activeNote.content.slice(to)
-            updateNote(activeNote.id, newContent)
-        }
 
         setSelection(null)
         setToolbarPos(null)
     }
 
+    const activeAIReq = useRef(0)
+
+    useEffect(() => {
+        activeAIReq.current++
+        setLoadingAction(null)
+    }, [selection])
+
     const quickAction = async (type: 'grammar' | 'rephrase') => {
         if (!selection || loadingAction) return
+        const reqId = ++activeAIReq.current
         setLoadingAction(type)
         const systemPrompt = 'You are a helpful AI writing assistant. Return ONLY the transformed text in Markdown.'
         const actionPrompt = type === 'grammar'
@@ -177,11 +186,15 @@ export function Editor() {
                 systemPrompt
             })
 
+            if (activeAIReq.current !== reqId) return // Aborted by selection change
+
             if (response.content) {
                 applyAIResult(response.content)
             }
         } finally {
-            setLoadingAction(null)
+            if (activeAIReq.current === reqId) {
+                setLoadingAction(null)
+            }
         }
     }
 
@@ -210,7 +223,10 @@ export function Editor() {
                         const { from, to } = update.state.selection.main
                         if (from !== to) {
                             const text = update.state.sliceDoc(from, to)
-                            setSelection({ text, from, to })
+                            setSelection(prev => {
+                                if (prev && prev.from === from && prev.to === to && prev.text === text) return prev
+                                return { text, from, to }
+                            })
 
                             // Get coords directly from the view
                             const coords = update.view.coordsAtPos(from)
@@ -231,7 +247,8 @@ export function Editor() {
                     mathPlugin,
                     attachmentHandler,
                     search({ top: true }),
-                    EditorView.lineWrapping
+                    EditorView.lineWrapping,
+                    aiSuggestionSupport()
                 ]}
                 className="flex-1 overflow-hidden h-full"
                 style={{ height: '100%' }}
@@ -253,7 +270,8 @@ export function Editor() {
                 >
                     <button
                         onClick={() => quickAction('grammar')}
-                        disabled={loadingAction !== null}
+                        disabled={loadingAction !== null || !hasKey}
+                        title={!hasKey ? 'API Key required (open Settings)' : 'Fix Grammar'}
                         className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded flex items-center gap-1.5 text-[10px] font-medium text-zinc-600 dark:text-zinc-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {loadingAction === 'grammar' ? (
@@ -265,7 +283,8 @@ export function Editor() {
                     <div className="w-px h-3 bg-zinc-200 dark:bg-zinc-800 mx-0.5" />
                     <button
                         onClick={() => quickAction('rephrase')}
-                        disabled={loadingAction !== null}
+                        disabled={loadingAction !== null || !hasKey}
+                        title={!hasKey ? 'API Key required (open Settings)' : 'Rephrase'}
                         className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded flex items-center gap-1.5 text-[10px] font-medium text-zinc-600 dark:text-zinc-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {loadingAction === 'rephrase' ? (
@@ -277,7 +296,8 @@ export function Editor() {
                     <div className="w-px h-3 bg-zinc-200 dark:bg-zinc-800 mx-0.5" />
                     <button
                         onClick={() => setIsAICommandOpen(true)}
-                        disabled={loadingAction !== null}
+                        disabled={loadingAction !== null || !hasKey}
+                        title={!hasKey ? 'API Key required (open Settings)' : 'Ask AI'}
                         className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded flex items-center gap-1.5 text-[10px] font-medium text-zinc-600 dark:text-zinc-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <Sparkles className="w-3 h-3 text-indigo-500" /> Ask AI

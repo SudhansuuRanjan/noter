@@ -91,7 +91,7 @@ export function CommandPalette() {
         <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] bg-black/20 dark:bg-black/40 backdrop-blur-sm animate-fade-in">
             <div
                 ref={containerRef}
-                className="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden transform scale-100 transition-transform"
+                className="w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden transform scale-100 transition-transform"
             >
                 <div className="flex items-center px-4 py-3 border-b border-zinc-100 dark:border-zinc-800/60">
                     <Search className="text-zinc-400 mr-3" size={18} />
@@ -152,7 +152,8 @@ export function CommandPalette() {
                     {tagResults.length > 0 && (
                         <div className="mb-2">
                             <div className="px-3 py-1 mb-1 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Tags</div>
-                            {tagResults.map(action => (
+                            <div className='flex gap-1 flex-col'>
+                                {tagResults.map(action => (
                                 <button
                                     key={action.id}
                                     onClick={() => handleSelectAction(action.action)}
@@ -164,6 +165,7 @@ export function CommandPalette() {
                                     <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200 flex-1">{action.label}</span>
                                 </button>
                             ))}
+                            </div>
                         </div>
                     )}
 

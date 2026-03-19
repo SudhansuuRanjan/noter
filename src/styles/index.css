@@ -112,6 +112,15 @@
         -moz-osx-font-smoothing: grayscale;
     }
 
+    ::selection {
+        background-color: rgb(var(--theme-500) / 0.2)!important;
+        color: inherit;
+    }
+
+    input, textarea, [contenteditable="true"] {
+        caret-color: rgb(var(--theme-500));
+    }
+
     html,
     body,
     #root {
@@ -158,6 +167,17 @@
 .cm-editor,
 .cm-editor .cm-scroller {
     height: 100% !important;
+}
+
+.cm-content {
+    caret-color: rgb(var(--theme-500)) !important;
+}
+.cm-cursor {
+    border-left-color: rgb(var(--theme-500)) !important;
+}
+.cm-selectionBackground,
+.cm-selectionLayer .cm-selectionBackground {
+    background-color: rgb(var(--theme-500) / 0.3) !important;
 }
 
 /* CodeMirror light mode editor background */

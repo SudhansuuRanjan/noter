@@ -104,8 +104,8 @@ export function Preview() {
           prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-2
           prose-p:leading-7
           prose-a:text-indigo-600 dark:prose-a:text-indigo-400 prose-a:no-underline hover:prose-a:underline
-          prose-code:text-indigo-600 prose-code:font-medium dark:prose-code:text-indigo-300 prose-code:bg-indigo-50 dark:prose-code:bg-zinc-800/60 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:text-xs prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
-          prose-pre:bg-zinc-100 dark:prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-zinc-200 dark:prose-pre:border-zinc-700/50 prose-pre:rounded-xl prose-pre:overflow-x-auto prose-pre:p-0
+          prose-code:text-indigo-600 prose-code:font-medium dark:prose-code:text-indigo-300 prose-code:bg-zinc-100/80 dark:prose-code:bg-zinc-800/60 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:text-xs prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
+          prose-pre:bg-zinc-50 dark:prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-zinc-200 dark:prose-pre:border-zinc-700/50 prose-pre:rounded-xl prose-pre:overflow-x-auto prose-pre:p-0
           prose-pre:code:bg-transparent prose-pre:code:text-xs prose-pre:code:p-4 prose-pre:code:block
           prose-blockquote:border-l-indigo-400 prose-blockquote:bg-indigo-50 dark:prose-blockquote:bg-indigo-600/5 prose-blockquote:rounded-r-xl prose-blockquote:py-0.5
           prose-hr:border-zinc-200 dark:prose-hr:border-zinc-700/50
