@@ -258,6 +258,7 @@ interface NotesContextValue {
     setPreviewWidth: (width: 'medium' | 'large' | 'full') => void
     saveVersionHistory: () => Promise<boolean>
     ensureHistorySynced: (nextNoteId?: string | null) => Promise<boolean>
+    cloneNote: (id: string) => Promise<void>
 }
 
 const NotesContext = createContext<NotesContextValue | null>(null)
@@ -417,6 +418,42 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
         if (inNewWindow) {
             window.electronAPI.openInNewWindow(result.id)
         }
+    }, [state.notes])
+
+    const cloneNote = useCallback(async (id: string) => {
+        const noteToClone = state.notes.find(n => n.id === id)
+        if (!noteToClone) return
+
+        const result = await window.electronAPI.createNote()
+        
+        const lines = noteToClone.content.split('\n')
+        let newContent = noteToClone.content
+        let newTitle = noteToClone.title + ' (Copy)'
+        
+        if (lines.length > 0 && lines[0].startsWith('# ')) {
+            lines[0] = lines[0] + ' (Copy)'
+            newContent = lines.join('\n')
+            newTitle = extractTitle(newContent)
+        } else {
+            newContent = `# ${newTitle}\n\n${newContent}`
+        }
+
+        await window.electronAPI.writeNote(result.id, newContent)
+
+        const note: Note = {
+            ...noteToClone,
+            id: result.id,
+            title: newTitle,
+            content: newContent,
+            preview: extractPreview(newContent),
+            createdAt: result.createdAt,
+            updatedAt: result.updatedAt,
+            pinned: false,
+            starred: false
+        }
+        
+        dispatch({ type: 'ADD_NOTE', note })
+        dispatch({ type: 'SET_ACTIVE', id: note.id })
     }, [state.notes])
 
     const updateNote = useCallback((id: string, content: string) => {
@@ -694,7 +731,8 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             setAccentColor,
             setPreviewWidth,
             saveVersionHistory,
-            ensureHistorySynced
+            ensureHistorySynced,
+            cloneNote
         }}>
             {children}
         </NotesContext.Provider>

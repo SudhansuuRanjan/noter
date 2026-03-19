@@ -79,14 +79,14 @@ function AppLayout() {
     const isSmallScreen = windowWidth < 768
 
     // Target base width in pixels
-    const targetWidth = isSmallScreen ? 200 : 280
+    const targetWidth = isSmallScreen ? 240 : 320
 
     // Calculate what percentage of the screen the target width represents
     const calculatedPercent = (targetWidth / windowWidth) * 100
 
     // Clamp the percentage so it doesn't get ridiculously small or large
-    const minSizePercent = Math.max(isSmallScreen ? 25 : 15, Math.min(isSmallScreen ? 40 : 30, calculatedPercent))
-    const maxSizePercent = isSmallScreen ? 50 : 40
+    const minSizePercent = Math.max(isSmallScreen ? 25 : 20, Math.min(isSmallScreen ? 40 : 25, calculatedPercent))
+    const maxSizePercent = isSmallScreen ? 40 : 25
 
     const defaultSizePercent = minSizePercent
 

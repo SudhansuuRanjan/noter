@@ -1,4 +1,4 @@
-import { Star, Trash2, Pin, Link as LinkIcon } from 'lucide-react'
+import { Star, Trash2, Pin, Link as LinkIcon, Copy } from 'lucide-react'
 import { Note } from '../types/note'
 import { useNotes } from '../context/NotesContext'
 
@@ -25,7 +25,7 @@ function formatDate(dateStr: string) {
 }
 
 export function NoteCard({ note, isActive }: NoteCardProps) {
-    const { state, setActiveNote, toggleStar, togglePin, setDeleteConfirm, ensureHistorySynced } = useNotes()
+    const { state, setActiveNote, toggleStar, togglePin, setDeleteConfirm, ensureHistorySynced, cloneNote } = useNotes()
 
     const label = note.labelId ? state.labels.find(l => l.id === note.labelId) : null
 
@@ -72,7 +72,7 @@ export function NoteCard({ note, isActive }: NoteCardProps) {
                             </p>
                             {label && (
                                 <div
-                                    className="px-1.5 py-0.5 rounded text-[9px] font-medium border truncate max-w-[90px] leading-none flex items-center"
+                                    className="px-1.5 py-0.5 rounded text-[9px] font-medium border truncate max-w-[120px] leading-none flex items-center"
                                     style={{
                                         backgroundColor: `${label.color}15`,
                                         color: label.color,
@@ -87,6 +87,16 @@ export function NoteCard({ note, isActive }: NoteCardProps) {
 
                         <div className={`flex self-end items-center gap-0.5 flex-shrink-0 transition-opacity duration-150 ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                             }`}>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    cloneNote(note.id)
+                                }}
+                                className="p-1.5 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all duration-150"
+                                title="Duplicate Note"
+                            >
+                                <Copy size={13} className="text-zinc-400" />
+                            </button>
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation()
