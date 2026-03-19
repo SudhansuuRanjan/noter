@@ -3,10 +3,11 @@ import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
 import { languages } from '@codemirror/language-data'
 import { dracula } from '@uiw/codemirror-theme-dracula'
 import { githubLight } from '@uiw/codemirror-theme-github'
-import { EditorView, ViewPlugin, Decoration, MatchDecorator, ViewUpdate } from '@codemirror/view'
+import { EditorView, ViewPlugin, Decoration, MatchDecorator, ViewUpdate, keymap } from '@codemirror/view'
+import { Prec } from '@codemirror/state'
 import { search } from '@codemirror/search'
 import { useNotes } from '../context/NotesContext'
-import { useCallback, useRef, useState, useEffect } from 'react'
+import { useCallback, useRef, useState, useEffect, useMemo } from 'react'
 import { Sparkles, Languages, Wand2, Loader2 } from 'lucide-react'
 import { AICommand } from './AICommand'
 import { aiSuggestionSupport, setAISuggestion } from '../extensions/aiWidget'
@@ -47,6 +48,10 @@ export function Editor() {
     const [isAICommandOpen, setIsAICommandOpen] = useState(false)
     const [loadingAction, setLoadingAction] = useState<'grammar' | 'rephrase' | null>(null)
     const [hasKey, setHasKey] = useState(false)
+
+    useEffect(() => {
+        window.electronAPI.hasKey().then(setHasKey)
+    }, [])
 
     useEffect(() => {
         if (toolbarPos && selection) {
@@ -198,6 +203,62 @@ export function Editor() {
         }
     }
 
+    const handleSlashCommand = async (type: 'write' | 'complete', prompt: string, from: number, to: number) => {
+        if (!hasKey) {
+            window.dispatchEvent(new Event('open-settings'))
+            return
+        }
+
+        viewRef.current?.dispatch({
+            changes: { from, to, insert: '⏳ Thinking...' }
+        })
+
+        const systemPrompt = 'You are a helpful AI writing assistant. Return ONLY the output text or generated content in Markdown. Do not include introductory text.'
+        const actionPrompt = type === 'write' 
+            ? `Write content about: ${prompt}`
+            : `Complete this thought or prompt: ${prompt}`
+
+        try {
+            const response = await window.electronAPI.aiChat({
+                messages: [{ role: 'user', content: actionPrompt }],
+                systemPrompt
+            })
+
+            viewRef.current?.dispatch({
+                changes: { from, to: from + 14, insert: '' },
+                effects: response.content ? setAISuggestion.of({ from, to: from, text: response.content }) : undefined
+            })
+        } catch (e) {
+            viewRef.current?.dispatch({
+                changes: { from, to: from + 14, insert: '' }
+            })
+        }
+    }
+
+    const aiSlashCommandExtension = useMemo(() => Prec.highest(keymap.of([{
+        key: 'Enter',
+        run: (view) => {
+            const { state } = view
+            const selection = state.selection.main
+            if (!selection.empty) return false
+            
+            const line = state.doc.lineAt(selection.head)
+            const textBeforeCursor = line.text.slice(0, selection.head - line.from).trimEnd()
+            
+            // Match /write [prompt] or /complete [prompt]
+            const match = textBeforeCursor.match(/^\/(write|complete)\s*(.*)$/i)
+            
+            if (match) {
+                const type = match[1].toLowerCase() as 'write' | 'complete'
+                const prompt = match[2].trim()
+                
+                handleSlashCommand(type, prompt, line.from, selection.head)
+                return true
+            }
+            return false
+        }
+    }])), [hasKey])
+
     if (!activeNote) {
         return (
             <div className="flex-1 flex items-center justify-center h-full bg-white dark:bg-zinc-950">
@@ -248,7 +309,8 @@ export function Editor() {
                     attachmentHandler,
                     search({ top: true }),
                     EditorView.lineWrapping,
-                    aiSuggestionSupport()
+                    aiSuggestionSupport(),
+                    aiSlashCommandExtension
                 ]}
                 className="flex-1 overflow-hidden h-full"
                 style={{ height: '100%' }}

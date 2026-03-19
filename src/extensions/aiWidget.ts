@@ -14,18 +14,18 @@ class AISuggestionWidget extends WidgetType {
 
     toDOM(view: EditorView) {
         const wrap = document.createElement('span')
-        wrap.className = 'inline-flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 rounded-md py-[1px] px-1.5 shadow-sm align-middle my-0.5'
+        wrap.className = 'relative inline-block bg-indigo-50/50 dark:bg-indigo-500/10 border border-indigo-200/60 dark:border-indigo-500/30 rounded-lg py-2 px-3 shadow-sm align-middle my-1.5'
 
         const textSpan = document.createElement('span')
-        textSpan.className = 'text-indigo-700 dark:text-indigo-300 font-medium whitespace-pre-wrap'
+        textSpan.className = 'text-indigo-700 dark:text-indigo-300 font-medium whitespace-pre-wrap block pr-16 text-sm leading-relaxed'
         textSpan.textContent = this.data.text
 
-        const actions = document.createElement('span')
-        actions.className = 'flex items-center gap-0.5 ml-1 select-none border-l border-indigo-200 dark:border-indigo-500/30 pl-1.5'
+        const actions = document.createElement('div')
+        actions.className = 'absolute bottom-1.5 right-1.5 flex items-center gap-1 select-none bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-md border border-indigo-100 dark:border-indigo-500/20 p-1 shadow-sm'
 
         const acceptBtn = document.createElement('button')
-        acceptBtn.className = 'p-0.5 rounded text-indigo-600 hover:bg-indigo-200/50 dark:text-indigo-400 dark:hover:bg-indigo-500/40 transition-colors cursor-pointer'
-        acceptBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+        acceptBtn.className = 'p-1 rounded bg-indigo-600 text-white hover:bg-indigo-700 transition-all cursor-pointer shadow-sm active:scale-90 flex items-center justify-center'
+        acceptBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
         acceptBtn.title = "Accept (Enter)"
         acceptBtn.onclick = (e) => {
             e.preventDefault()
@@ -37,8 +37,8 @@ class AISuggestionWidget extends WidgetType {
         }
 
         const rejectBtn = document.createElement('button')
-        rejectBtn.className = 'p-0.5 rounded text-zinc-400 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-500/20 transition-colors cursor-pointer'
-        rejectBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`
+        rejectBtn.className = 'p-1 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-500/20 transition-all cursor-pointer active:scale-90 flex items-center justify-center'
+        rejectBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`
         rejectBtn.title = "Reject (Esc)"
         rejectBtn.onclick = (e) => {
             e.preventDefault()

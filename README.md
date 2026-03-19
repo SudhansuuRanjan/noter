@@ -8,6 +8,8 @@
 
 ### 🤖 Intelligence & Writing
 - **AI Writer & Editor**: Integrated writing assistant for rephrasing, summarizing, grammar correction, and content expansion. Powered by context-aware LLM flows.
+- **AI Slash Commands**: Trigger AI actions directly from the editor using `/write [prompt]` or `/complete [prompt]`.
+- **Inline AI Suggestions**: Real-time AI editing with integrated **Accept** and **Reject** controls for non-destructive content updates.
 - **Advanced Markdown**: Native support for **Mermaid Diagrams** (charts, flows), **LaTeX Math** (inline and block formulas), and enhanced **Interactive Tables**.
 - **In-Note Search (Cmd + F)**: High-speed string locator integrated directly into the editor.
 - **Code Copy**: Hover-activated copy buttons on all code blocks with clean AST-based string extraction.
@@ -19,12 +21,14 @@
 - **Professional PDF Export**: One-click native PDF generation with optimized print typography and isolated styling.
 
 ### 🎨 Personalization & UI
-- **Dynamic Accent Themes**: Choose between **Indigo**, **Cyan**, or **Pink** themes that instantly rebind the entire app's color palette.
-- **Glassmorphism & UX**: A beautifully crafted UI featuring elegant dark/light modes, backdrop blurs, and smooth frameless transitions.
+- **Dynamic Accent Themes**: Choose between **Indigo**, **Cyan**, or **Pink** themes that instantly rebind the entire app's color palette. Now fully **Persistent** across app restarts.
+- **Customizable Layout**: Adjust the editor content width (Medium, Large, Full) to suit your writing style. Preferences are automatically saved.
+- **Great UX**: A beautifully crafted UI featuring elegant dark/light modes, backdrop blurs, and smooth frameless transitions.
 - **Sidebar Organization**: Smart sorting by Name/Date, inline hashtag extraction, and customizable file labels.
 
 ### 🛡️ Built for Professionals
 - **Revision History**: Silent, automatic versioning. Preview past edit sessions and restore from the "Time Machine" modal.
+- **Global Error Boundary**: Improved stability with a centralized error management system to ensure you never lose your work.
 - **Local-First**: Standard \`.md\` file storage. Your data never leaves your machine.
 - **Attachments Manager**: Secure local images and file storage with drag-and-drop integration.
 

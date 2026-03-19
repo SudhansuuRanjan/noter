@@ -22,6 +22,7 @@ interface NotesState {
     version: string
     previewWidth: 'medium' | 'large' | 'full'
     historySyncState: 'synced' | 'pending' | 'syncing'
+    isSettingsLoaded: boolean
 }
 
 type Action =
@@ -53,6 +54,7 @@ type Action =
     | { type: 'SET_ACCENT_COLOR'; color: string }
     | { type: 'SET_PREVIEW_WIDTH'; width: 'medium' | 'large' | 'full' }
     | { type: 'SET_HISTORY_SYNC_STATE'; syncState: 'synced' | 'pending' | 'syncing' }
+    | { type: 'LOAD_SETTINGS'; settings: any }
 
 function notesReducer(state: NotesState, action: Action): NotesState {
     switch (action.type) {
@@ -185,6 +187,14 @@ function notesReducer(state: NotesState, action: Action): NotesState {
             return { ...state, previewWidth: action.width }
         case 'SET_HISTORY_SYNC_STATE':
             return { ...state, historySyncState: action.syncState }
+        case 'LOAD_SETTINGS':
+            return { 
+                ...state, 
+                theme: action.settings.theme || state.theme,
+                accentColor: action.settings.accentColor || state.accentColor,
+                previewWidth: action.settings.previewWidth || state.previewWidth,
+                isSettingsLoaded: true
+            }
         default:
             return state
     }
@@ -219,8 +229,9 @@ const initialState: NotesState = {
     sortBy: 'updatedAt',
     sortOrder: 'desc',
     accentColor: localStorage.getItem('noter-accent') || 'indigo',
-    previewWidth: (localStorage.getItem('noter-preview-width') as 'medium' | 'large' | 'full') || 'medium'
-    , historySyncState: 'synced'
+    previewWidth: (localStorage.getItem('noter-preview-width') as 'medium' | 'large' | 'full') || 'medium',
+    historySyncState: 'synced',
+    isSettingsLoaded: false
 }
 
 interface NotesContextValue {
@@ -600,6 +611,34 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
     const toggleTheme = useCallback(() => {
         dispatch({ type: 'SET_THEME', theme: state.theme === 'dark' ? 'light' : 'dark' })
     }, [state.theme])
+
+    useEffect(() => {
+        const loadSettings = async () => {
+            const settings = await window.electronAPI.getSettings()
+            if (settings) {
+                dispatch({ type: 'LOAD_SETTINGS', settings })
+            }
+        }
+        loadSettings()
+    }, [])
+
+    useEffect(() => {
+        if (!state.isSettingsLoaded) return
+        localStorage.setItem('noter-theme', state.theme)
+        window.electronAPI.updateSettings({ theme: state.theme })
+    }, [state.theme, state.isSettingsLoaded])
+
+    useEffect(() => {
+        if (!state.isSettingsLoaded) return
+        localStorage.setItem('noter-accent', state.accentColor)
+        window.electronAPI.updateSettings({ accentColor: state.accentColor })
+    }, [state.accentColor, state.isSettingsLoaded])
+
+    useEffect(() => {
+        if (!state.isSettingsLoaded) return
+        localStorage.setItem('noter-preview-width', state.previewWidth)
+        window.electronAPI.updateSettings({ previewWidth: state.previewWidth })
+    }, [state.previewWidth, state.isSettingsLoaded])
 
     const setDeleteConfirm = useCallback((id: string | null) => {
         dispatch({ type: 'SET_DELETE_CONFIRM', id })

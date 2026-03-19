@@ -473,21 +473,50 @@ ipcMain.handle('notes:getRevision', (_event, path: string) => {
 })
 
 // IPC: Settings Management
-ipcMain.handle('settings:hasKey', () => {
+function readSettings() {
     try {
         if (existsSync(SETTINGS_FILE)) {
-            const settings = JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'))
-            return !!settings.openRouterKey
+            return JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'))
         }
     } catch { }
-    return false
+    return {}
+}
+
+function writeSettings(settings: any) {
+    ensureNotesDir()
+    writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf-8')
+}
+
+ipcMain.handle('settings:get', () => {
+    const settings = readSettings()
+    // Don't return the encrypted key directly or sensitive data if possible
+    // but for now, we just return the full settings object
+    return settings
+})
+
+ipcMain.handle('settings:update', (_event, newSettings: any) => {
+    try {
+        const settings = readSettings()
+        const updated = { ...settings, ...newSettings }
+        writeSettings(updated)
+        return true
+    } catch (e) {
+        console.error('Failed to update settings:', e)
+        return false
+    }
+})
+
+ipcMain.handle('settings:hasKey', () => {
+    const settings = readSettings()
+    return !!settings.openRouterKey
 })
 
 ipcMain.handle('settings:saveKey', (_event, key: string) => {
     try {
         const { safeStorage } = require('electron')
         const encrypted = safeStorage.encryptString(key).toString('base64')
-        writeFileSync(SETTINGS_FILE, JSON.stringify({ openRouterKey: encrypted }), 'utf-8')
+        const settings = readSettings()
+        writeSettings({ ...settings, openRouterKey: encrypted })
         return true
     } catch (e) {
         console.error('Failed to save key:', e)

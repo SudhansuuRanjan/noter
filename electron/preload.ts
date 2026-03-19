@@ -42,6 +42,8 @@ export interface ElectronAPI {
     openInNewWindow: (id: string) => Promise<void>
     saveKey: (key: string) => Promise<boolean>
     hasKey: () => Promise<boolean>
+    getSettings: () => Promise<any>
+    updateSettings: (settings: any) => Promise<boolean>
     aiChat: (options: { messages: any[], systemPrompt?: string, model?: string }) =>
         Promise<{ content?: string; usage?: any; error?: string }>
     windowArgs: { mode: string; noteId?: string }
@@ -83,6 +85,8 @@ const api: ElectronAPI = {
     openInNewWindow: (id: string) => ipcRenderer.invoke('notes:openInNewWindow', id),
     saveKey: (key: string) => ipcRenderer.invoke('settings:saveKey', key),
     hasKey: () => ipcRenderer.invoke('settings:hasKey'),
+    getSettings: () => ipcRenderer.invoke('settings:get'),
+    updateSettings: (settings: any) => ipcRenderer.invoke('settings:update', settings),
     aiChat: (options: { messages: any[], systemPrompt?: string, model?: string }) =>
         ipcRenderer.invoke('ai:chat', options),
     windowArgs: getWindowArgs(),

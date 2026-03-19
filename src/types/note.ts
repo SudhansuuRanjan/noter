@@ -45,6 +45,8 @@ export interface ElectronAPI {
     openInNewWindow: (id: string) => Promise<void>
     saveKey: (key: string) => Promise<boolean>
     hasKey: () => Promise<boolean>
+    getSettings: () => Promise<any>
+    updateSettings: (settings: any) => Promise<boolean>
     aiChat: (options: { messages: any[], systemPrompt?: string, model?: string }) =>
         Promise<{ content?: string; usage?: any; error?: string }>
     windowArgs: { mode: string; noteId?: string }

@@ -14,7 +14,7 @@
     "publish:win": "npm run build:win -- -p always"
   },
   "keywords": [],
-  "author": "",
+  "author": "Sudhanshu Ranjan",
   "license": "MIT",
   "devDependencies": {
     "@types/electron": "^1.4.38",
