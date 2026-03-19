@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useCallback, useEffect, useRef, useState } from 'react'
 import { Note, Label, ViewMode, FilterMode } from '../types/note'
+import { withViewTransition } from '../utils/transition'
 
 interface NotesState {
     notes: Note[]
@@ -323,8 +324,10 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             updatedAt: result.updatedAt,
             filePath: ''
         }
-        dispatch({ type: 'ADD_NOTE', note })
-        dispatch({ type: 'SET_VIEW_MODE', mode: 'edit' })
+        withViewTransition(() => {
+            dispatch({ type: 'ADD_NOTE', note })
+            dispatch({ type: 'SET_VIEW_MODE', mode: 'edit' })
+        })
     }, [])
 
     const openDailyNote = useCallback(async () => {
@@ -369,9 +372,11 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
                 filePath: '',
                 labelId: journalLabel.id
             }
-            dispatch({ type: 'ADD_NOTE', note })
-            dispatch({ type: 'SET_ACTIVE', id: note.id })
-            dispatch({ type: 'SET_VIEW_MODE', mode: 'edit' })
+            withViewTransition(() => {
+                dispatch({ type: 'ADD_NOTE', note })
+                dispatch({ type: 'SET_ACTIVE', id: note.id })
+                dispatch({ type: 'SET_VIEW_MODE', mode: 'edit' })
+            })
         }
     }, [state.notes, state.labels])
 
@@ -413,7 +418,15 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             pinned: false,
             tags: []
         }
-        dispatch({ type: 'ADD_NOTE', note })
+        withViewTransition(() => {
+            dispatch({ type: 'ADD_NOTE', note })
+        })
+
+        if (!inNewWindow) {
+            withViewTransition(() => {
+                dispatch({ type: 'SET_ACTIVE', id: note.id })
+            })
+        }
 
         if (inNewWindow) {
             window.electronAPI.openInNewWindow(result.id)
@@ -452,8 +465,10 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             starred: false
         }
         
-        dispatch({ type: 'ADD_NOTE', note })
-        dispatch({ type: 'SET_ACTIVE', id: note.id })
+        withViewTransition(() => {
+            dispatch({ type: 'ADD_NOTE', note })
+            dispatch({ type: 'SET_ACTIVE', id: note.id })
+        })
     }, [state.notes])
 
     const updateNote = useCallback((id: string, content: string) => {
@@ -563,11 +578,11 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
                 })
             }
         }
-        dispatch({ type: 'SET_ACTIVE', id })
+        withViewTransition(() => dispatch({ type: 'SET_ACTIVE', id }))
     }, [state.activeNoteId, state.notes])
 
     const toggleSidebar = useCallback(() => {
-        dispatch({ type: 'TOGGLE_SIDEBAR' })
+        withViewTransition(() => dispatch({ type: 'TOGGLE_SIDEBAR' }))
     }, [])
 
     const setViewMode = useCallback((mode: ViewMode) => {

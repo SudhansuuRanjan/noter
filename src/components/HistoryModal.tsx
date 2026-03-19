@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom'
 import { X, Clock, History, RotateCcw } from 'lucide-react'
 import { Note } from '../types/note'
 import { useNotes } from '../context/NotesContext'
+import { withViewTransition } from '../utils/transition'
+import { useHotkey } from '@tanstack/react-hotkeys'
 
 interface HistoryEntry {
     timestamp: number
@@ -31,6 +33,10 @@ export function HistoryModal({ note, onClose }: HistoryModalProps) {
         fetchHistory()
     }, [note.id])
 
+    useHotkey('Escape', () => {
+        withViewTransition(onClose)
+    })
+
     const fetchRevisionContent = async (entry: HistoryEntry) => {
         setSelectedRevision(entry)
         const content = await window.electronAPI.getRevision(entry.path)
@@ -39,8 +45,10 @@ export function HistoryModal({ note, onClose }: HistoryModalProps) {
 
     const restoreRevision = () => {
         if (revisionContent !== null) {
-            updateNote(note.id, revisionContent)
-            onClose()
+            withViewTransition(() => {
+                updateNote(note.id, revisionContent)
+                onClose()
+            })
         }
     }
 
@@ -52,8 +60,14 @@ export function HistoryModal({ note, onClose }: HistoryModalProps) {
     }
 
     return createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in py-10">
-            <div className="flex flex-col w-[800px] h-full max-h-[80vh] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 translate-y-0 scale-100 overflow-hidden">
+        <div 
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in py-10"
+            onClick={() => withViewTransition(onClose)}
+        >
+            <div 
+                className="flex flex-col w-[800px] h-full max-h-[80vh] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 translate-y-0 scale-100 overflow-hidden"
+                onClick={e => e.stopPropagation()}
+            >
                 <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-200 dark:border-zinc-800">
                     <div className="flex items-center gap-2 text-zinc-800 dark:text-zinc-200">
                         <History size={18} className="text-indigo-500" />
@@ -61,7 +75,7 @@ export function HistoryModal({ note, onClose }: HistoryModalProps) {
                         <span className="text-xs text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full ml-2 truncate max-w-[200px]">{note.title}</span>
                     </div>
                     <button
-                        onClick={onClose}
+                        onClick={() => withViewTransition(onClose)}
                         className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                     >
                         <X size={16} />
@@ -83,7 +97,7 @@ export function HistoryModal({ note, onClose }: HistoryModalProps) {
                                 {history.map(entry => (
                                     <button
                                         key={entry.timestamp}
-                                        onClick={() => fetchRevisionContent(entry)}
+                                        onClick={() => withViewTransition(() => fetchRevisionContent(entry))}
                                         className={`w-full text-left p-3 rounded-xl transition-all duration-200 ${selectedRevision?.timestamp === entry.timestamp
                                             ? 'bg-indigo-100 dark:bg-indigo-500/20 ring-1 ring-indigo-300 dark:ring-indigo-500/50'
                                             : 'hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50'

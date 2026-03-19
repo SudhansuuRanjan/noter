@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Key, ShieldCheck, AlertCircle, X, Sparkles, Settings as SettingsIcon, Palette } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
+import { withViewTransition } from '../utils/transition'
+import { useHotkey } from '@tanstack/react-hotkeys'
 
 interface AISettingsProps {
     isOpen: boolean
@@ -32,6 +34,10 @@ export const AISettings: React.FC<AISettingsProps> = ({ isOpen, onClose }) => {
         }
     }, [isOpen])
 
+    useHotkey('Escape', () => {
+        withViewTransition(onClose)
+    }, { enabled: isOpen })
+
     const handleSave = async () => {
         if (!apiKey.startsWith('sk-or-')) {
             setStatus({ type: 'error', message: 'Invalid OpenRouter Key format (sk-or-...)' })
@@ -59,8 +65,14 @@ export const AISettings: React.FC<AISettingsProps> = ({ isOpen, onClose }) => {
     if (!isOpen) return null
 
     return createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="w-full max-w-xl bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col">
+        <div 
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => withViewTransition(onClose)}
+        >
+            <div 
+                className="w-full max-w-xl bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col"
+                onClick={e => e.stopPropagation()}
+            >
                 <div className="px-6 py-5 border-b border-zinc-100 dark:border-zinc-800/60 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-800/30">
                     <div className="flex items-center gap-2.5">
                         <div className="p-2 bg-indigo-500/10 rounded-lg">
@@ -72,7 +84,7 @@ export const AISettings: React.FC<AISettingsProps> = ({ isOpen, onClose }) => {
                         </div>
                     </div>
                     <button
-                        onClick={onClose}
+                        onClick={() => withViewTransition(onClose)}
                         className="p-2 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 rounded-lg transition-colors"
                     >
                         <X className="w-4 h-4 text-zinc-400" />
@@ -81,13 +93,13 @@ export const AISettings: React.FC<AISettingsProps> = ({ isOpen, onClose }) => {
 
                 <div className="flex border-b border-zinc-100 dark:border-zinc-800/60 bg-zinc-50/30 dark:bg-zinc-900">
                     <button
-                        onClick={() => setActiveTab('appearance')}
+                        onClick={() => withViewTransition(() => setActiveTab('appearance'))}
                         className={`flex-1 py-3 text-xs font-semibold tracking-wide transition-colors border-b-2 ${activeTab === 'appearance' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
                     >
                         Appearance
                     </button>
                     <button
-                        onClick={() => setActiveTab('ai')}
+                        onClick={() => withViewTransition(() => setActiveTab('ai'))}
                         className={`flex-1 py-3 text-xs font-semibold tracking-wide transition-colors border-b-2 ${activeTab === 'ai' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
                     >
                         AI Assistant
@@ -106,7 +118,7 @@ export const AISettings: React.FC<AISettingsProps> = ({ isOpen, onClose }) => {
                                     {THEMES.map(theme => (
                                         <button
                                             key={theme.id}
-                                            onClick={() => setAccentColor(theme.id)}
+                                            onClick={() => withViewTransition(() => setAccentColor(theme.id))}
                                             className={`
                                                 relative flex flex-col items-center gap-2 p-2 rounded-xl border-2 transition-all
                                                 ${state.accentColor === theme.id
@@ -136,7 +148,7 @@ export const AISettings: React.FC<AISettingsProps> = ({ isOpen, onClose }) => {
                                     ].map(option => (
                                         <button
                                             key={option.id}
-                                            onClick={() => setPreviewWidth(option.id as 'medium' | 'large' | 'full')}
+                                            onClick={() => withViewTransition(() => setPreviewWidth(option.id as 'medium' | 'large' | 'full'))}
                                             className={`
                                                 flex-1 py-2 px-3 text-xs font-medium rounded-xl border transition-all
                                                 ${state.previewWidth === option.id

@@ -1,10 +1,16 @@
 import { AlertTriangle, X } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { useNotes } from '../context/NotesContext'
+import { withViewTransition } from '../utils/transition'
+import { useHotkey } from '@tanstack/react-hotkeys'
 
 export function DeleteModal() {
     const { state, deleteNote, setDeleteConfirm, filteredNotes } = useNotes()
     const { deleteConfirmId } = state
+
+    useHotkey('Escape', () => {
+        withViewTransition(() => setDeleteConfirm(null))
+    }, { enabled: !!deleteConfirmId })
 
     if (!deleteConfirmId) return null
 
@@ -14,7 +20,7 @@ export function DeleteModal() {
     return createPortal(
         <div
             className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-fade-in"
-            onClick={() => setDeleteConfirm(null)}
+            onClick={() => withViewTransition(() => setDeleteConfirm(null))}
         >
             <div
                 className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/60 rounded-2xl p-6 w-80 shadow-2xl animate-scale-in"
@@ -31,7 +37,7 @@ export function DeleteModal() {
                         </div>
                     </div>
                     <button
-                        onClick={() => setDeleteConfirm(null)}
+                        onClick={() => withViewTransition(() => setDeleteConfirm(null))}
                         className="p-1 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                     >
                         <X size={15} />
@@ -46,13 +52,15 @@ export function DeleteModal() {
 
                 <div className="flex gap-2">
                     <button
-                        onClick={() => setDeleteConfirm(null)}
+                        onClick={() => withViewTransition(() => setDeleteConfirm(null))}
                         className="flex-1 py-2 px-4 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-sm font-medium transition-all duration-200"
                     >
                         Cancel
                     </button>
                     <button
-                        onClick={() => deleteNote(deleteConfirmId)}
+                        onClick={() => {
+                            withViewTransition(() => deleteNote(deleteConfirmId))
+                        }}
                         className="flex-1 py-2 px-4 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-medium transition-all duration-200 shadow-lg shadow-red-600/20"
                     >
                         Delete

@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Sparkles, X, Send, BrainCircuit, Languages, Wand2, RefreshCw, Copy, Check } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
+import { withViewTransition } from '../utils/transition'
+import { useHotkey } from '@tanstack/react-hotkeys'
 
 interface AICommandProps {
     isOpen: boolean
@@ -24,6 +26,10 @@ export const AICommand: React.FC<AICommandProps> = ({
     const [error, setError] = useState<string | null>(null)
     const [isCopied, setIsCopied] = useState(false)
     const { activeNote } = useNotes()
+
+    useHotkey('Escape', () => {
+        withViewTransition(onClose)
+    }, { enabled: isOpen })
 
     const handleRunAI = async (actionPrompt: string, customSystemPrompt?: string) => {
         setIsLoading(true)
@@ -93,8 +99,14 @@ export const AICommand: React.FC<AICommandProps> = ({
     if (!isOpen) return null
 
     return createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
+        <div 
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => withViewTransition(onClose)}
+        >
+            <div 
+                className="w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200"
+                onClick={e => e.stopPropagation()}
+            >
                 <div className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800/60 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-800/30">
                     <div className="flex items-center gap-2.5">
                         <div className="p-2 bg-indigo-500/10 rounded-lg">
@@ -103,7 +115,7 @@ export const AICommand: React.FC<AICommandProps> = ({
                         <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">AI Writer & Editor</h2>
                     </div>
                     <button
-                        onClick={onClose}
+                        onClick={() => withViewTransition(onClose)}
                         className="p-2 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 rounded-lg transition-colors"
                     >
                         <X className="w-4 h-4 text-zinc-400" />
@@ -187,7 +199,7 @@ export const AICommand: React.FC<AICommandProps> = ({
                                         )}
                                     </button>
                                     <button
-                                        onClick={() => { if (onApply) onApply(result); onClose(); }}
+                                        onClick={() => withViewTransition(() => { if (onApply) onApply(result); onClose(); })}
                                         className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-2 active:scale-95"
                                     >
                                         Apply to {selectionText ? 'Selection' : 'Note'}

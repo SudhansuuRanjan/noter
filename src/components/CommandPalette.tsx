@@ -1,29 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Search, FileText, Plus, Moon, Sun, Tag, FolderOpen, Settings, HelpCircle, Hash } from 'lucide-react'
+import { useHotkey } from '@tanstack/react-hotkeys'
 import { useNotes } from '../context/NotesContext'
+import { withViewTransition } from '../utils/transition'
 
 export function CommandPalette() {
-    const { state, setActiveNote, createNote, toggleTheme, openFolder, setSelectedLabelId, setSelectedTag } = useNotes()
+    const { state, setActiveNote, createNote, toggleTheme, openFolder, setSelectedLabelId, toggleTag, clearTags } = useNotes()
     const [isOpen, setIsOpen] = useState(false)
     const [query, setQuery] = useState('')
     const inputRef = useRef<HTMLInputElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
 
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-                e.preventDefault()
-                setIsOpen(o => !o)
-                setQuery('')
-            }
-            if (e.key === 'Escape' && isOpen) {
-                setIsOpen(false)
-            }
-        }
-        window.addEventListener('keydown', handleKeyDown)
-        return () => window.removeEventListener('keydown', handleKeyDown)
-    }, [isOpen])
+    useHotkey('Mod+K', () => {
+        withViewTransition(() => {
+            setIsOpen(o => !o)
+            setQuery('')
+        })
+    })
+
+    useHotkey('Escape', () => {
+        withViewTransition(() => setIsOpen(false))
+    }, { enabled: isOpen })
 
     useEffect(() => {
         if (isOpen && inputRef.current) {
@@ -34,7 +32,7 @@ export function CommandPalette() {
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
             if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-                setIsOpen(false)
+                withViewTransition(() => setIsOpen(false))
             }
         }
         if (isOpen) {
@@ -69,17 +67,24 @@ export function CommandPalette() {
         id: `tag-${t}`,
         label: `Filter by tag: ${t}`,
         icon: <Hash size={14} className="text-zinc-400" />,
-        action: () => setSelectedTag(t)
+        action: () => {
+            clearTags()
+            toggleTag(t)
+        }
     }))
 
     const handleSelectAction = (action: () => void) => {
-        action()
-        setIsOpen(false)
+            withViewTransition(() => {
+                action()
+                setIsOpen(false)
+            })
     }
 
     const handleSelectNote = (id: string) => {
-        setActiveNote(id)
-        setIsOpen(false)
+            withViewTransition(() => {
+                setActiveNote(id)
+                setIsOpen(false)
+            })
     }
 
     return createPortal(

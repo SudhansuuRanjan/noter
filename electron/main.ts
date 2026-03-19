@@ -60,7 +60,7 @@ function createWindow(noteId?: string): BrowserWindow {
     const win = new BrowserWindow({
         width: isSecondary ? 800 : 1280,
         height: isSecondary ? 600 : 800,
-        minWidth: isSecondary ? 400 : 800,
+        minWidth: isSecondary ? 400 : 1000,
         minHeight: isSecondary ? 300 : 600,
         backgroundColor: '#0e0e12',
         titleBarStyle: 'hiddenInset',

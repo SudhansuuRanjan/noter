@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Search, Plus, Star, FileText, X, ChevronRight, ChevronDown, Edit2, Check, Calendar, HelpCircle, ArrowUpDown, SortAsc, SortDesc, Sparkles, Settings, FileEdit } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
 import { NoteCard } from './NoteCard'
+import { withViewTransition } from '../utils/transition'
 import { ThemeToggle } from './ThemeToggle'
 import { HelpModal } from './HelpModal'
 import { AISettings } from './AISettings'
@@ -40,8 +41,8 @@ export function Sidebar() {
     const [editLabelColor, setEditLabelColor] = useState('#3b82f6')
 
     useEffect(() => {
-        const handleOpenSettings = () => setIsAISettingsOpen(true)
-        const handleOpenHelp = () => setIsHelpOpen(true)
+        const handleOpenSettings = () => withViewTransition(() => setIsAISettingsOpen(true))
+        const handleOpenHelp = () => withViewTransition(() => setIsHelpOpen(true))
 
         window.addEventListener('open-settings', handleOpenSettings)
         window.addEventListener('open-help', handleOpenHelp)
@@ -94,14 +95,14 @@ export function Sidebar() {
                     <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
                         <ThemeToggle />
                         <button
-                            onClick={() => setIsAISettingsOpen(true)}
+                            onClick={() => withViewTransition(() => setIsAISettingsOpen(true))}
                             className="p-2 rounded-lg text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200"
                             title="AI Settings"
                         >
                             <Settings size={14} />
                         </button>
                         <button
-                            onClick={() => setIsHelpOpen(true)}
+                            onClick={() => withViewTransition(() => setIsHelpOpen(true))}
                             className="p-2 rounded-lg text-amber-500 hover:text-amber-600 dark:text-amber-400 dark:hover:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all duration-200"
                             title="Help Guide"
                         >

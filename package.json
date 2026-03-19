@@ -38,6 +38,7 @@
     "@codemirror/search": "^6.6.0",
     "@openrouter/sdk": "^0.9.11",
     "@tailwindcss/typography": "^0.5.19",
+    "@tanstack/react-hotkeys": "^0.4.2",
     "@uiw/codemirror-extensions-langs": "^4.25.8",
     "@uiw/codemirror-theme-dracula": "^4.21.21",
     "@uiw/codemirror-theme-github": "^4.21.21",

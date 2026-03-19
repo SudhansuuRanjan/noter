@@ -4,6 +4,8 @@ import { X, Book } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
+import { withViewTransition } from '../utils/transition'
+import { useHotkey } from '@tanstack/react-hotkeys'
 
 interface HelpModalProps {
     isOpen: boolean
@@ -61,14 +63,11 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
 
     useEffect(() => {
         setMounted(true)
-        if (isOpen) {
-            const handleKeyDown = (e: KeyboardEvent) => {
-                if (e.key === 'Escape') onClose()
-            }
-            window.addEventListener('keydown', handleKeyDown)
-            return () => window.removeEventListener('keydown', handleKeyDown)
-        }
-    }, [isOpen, onClose])
+    }, [])
+
+    useHotkey('Escape', () => {
+        withViewTransition(onClose)
+    }, { enabled: isOpen && mounted })
 
     if (!mounted || !isOpen) return null
 
@@ -77,7 +76,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
             {/* Backdrop */}
             <div
                 className="absolute inset-0 cursor-pointer"
-                onClick={onClose}
+                onClick={() => withViewTransition(onClose)}
             />
 
             {/* Modal */}
@@ -97,7 +96,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                         </div>
                     </div>
                     <button
-                        onClick={onClose}
+                        onClick={() => withViewTransition(onClose)}
                         className="p-2 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 rounded-lg transition-colors"
                         title="Close (Esc)"
                     >
@@ -120,7 +119,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                 {/* Footer */}
                 <div className="px-6 py-4 bg-zinc-50 dark:bg-zinc-800/20 border-t border-zinc-100 dark:border-zinc-800/60 flex items-center justify-end">
                     <button
-                        onClick={onClose}
+                        onClick={() => withViewTransition(onClose)}
                         className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98]"
                     >
                         Got it!
