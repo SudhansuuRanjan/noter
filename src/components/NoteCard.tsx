@@ -90,16 +90,6 @@ export function NoteCard({ note, isActive }: NoteCardProps) {
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation()
-                                    cloneNote(note.id)
-                                }}
-                                className="p-1.5 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all duration-150"
-                                title="Duplicate Note"
-                            >
-                                <Copy size={13} className="text-zinc-400" />
-                            </button>
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation()
                                     navigator.clipboard.writeText(note.id)
                                 }}
                                 className="p-1.5 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all duration-150"
@@ -116,6 +106,16 @@ export function NoteCard({ note, isActive }: NoteCardProps) {
                                     size={13}
                                     className={note.pinned ? 'text-indigo-500 fill-indigo-500' : 'text-zinc-400'}
                                 />
+                            </button>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    cloneNote(note.id)
+                                }}
+                                className="p-1.5 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all duration-150"
+                                title="Duplicate Note"
+                            >
+                                <Copy size={13} className="text-zinc-400" />
                             </button>
                             <button
                                 onClick={(e) => { e.stopPropagation(); toggleStar(note.id) }}

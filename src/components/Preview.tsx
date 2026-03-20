@@ -208,10 +208,12 @@ export function Preview() {
                                     </code>
                                 )
                             },
-                            input: ({ ...props }) => (
+                            input: ({ node, disabled, ...props }) => (
                                 <input
                                     {...props}
-                                    className="mr-2 accent-indigo-600 w-4 h-4 rounded"
+                                    readOnly
+                                    onClick={(e) => e.preventDefault()}
+                                    className="mr-2 accent-indigo-600 w-4 h-4 rounded cursor-default"
                                 />
                             ),
                             a: ({ href, children, ...props }) => {
