@@ -145,7 +145,7 @@ export function Toolbar() {
                 <button
                     onClick={() => saveVersionHistory()}
                     disabled={state.historySyncState === 'syncing' || state.historySyncState === 'synced'}
-                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${state.historySyncState === 'synced'
+                    className={`flex text-nowrap items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${state.historySyncState === 'synced'
                         ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 cursor-default'
                         : state.historySyncState === 'syncing'
                             ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 cursor-wait'

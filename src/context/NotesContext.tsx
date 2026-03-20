@@ -565,6 +565,9 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
         const ids = await window.electronAPI.importNotes()
         if (ids && ids.length > 0) {
             await loadNotes()
+            withViewTransition(() => {
+                dispatch({ type: 'SET_ACTIVE', id: ids[0] })
+            })
         }
     }, [loadNotes])
 

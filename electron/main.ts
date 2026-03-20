@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain, dialog, shell, protocol, net } from 'electron'
-import { join, extname } from 'path'
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, unlinkSync, copyFileSync } from 'fs'
+import { join, extname, basename } from 'path'
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, unlinkSync, copyFileSync, statSync } from 'fs'
 import { homedir } from 'os'
 import { v4 as uuidv4 } from 'uuid'
 import { setupAutoUpdater } from './updater'
@@ -317,6 +317,17 @@ ipcMain.handle('notes:import', async () => {
     const now = new Date().toISOString()
 
     for (const sourcePath of result.filePaths) {
+        const stats = statSync(sourcePath)
+        const MAX_SIZE = 5 * 1024 * 1024 // 5MB
+
+        if (stats.size > MAX_SIZE) {
+            dialog.showErrorBox(
+                'File Too Large',
+                `The file "${basename(sourcePath)}" exceeds the 5MB limit and cannot be imported.`
+            )
+            continue
+        }
+
         const id = uuidv4()
         const destPath = join(NOTES_DIR, `${id}.md`)
         copyFileSync(sourcePath, destPath)
@@ -520,6 +531,18 @@ ipcMain.handle('settings:saveKey', (_event, key: string) => {
         return true
     } catch (e) {
         console.error('Failed to save key:', e)
+        return false
+    }
+})
+
+ipcMain.handle('settings:clearKey', () => {
+    try {
+        const settings = readSettings()
+        delete settings.openRouterKey
+        writeSettings(settings)
+        return true
+    } catch (e) {
+        console.error('Failed to clear key:', e)
         return false
     }
 })

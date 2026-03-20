@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Sparkles, X, Send, BrainCircuit, Languages, Wand2, RefreshCw, Copy, Check } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
@@ -31,6 +31,16 @@ export const AICommand: React.FC<AICommandProps> = ({
     useHotkey('Escape', () => {
         withViewTransition(onClose)
     }, { enabled: isOpen })
+
+    useEffect(() => {
+        if (isOpen) {
+            const checkKey = async () => {
+                const has = await window.electronAPI.hasKey()
+                setHasKey(has)
+            }
+            checkKey()
+        }
+    }, [isOpen])
 
     const handleRunAI = async (actionPrompt: string, customSystemPrompt?: string) => {
         setIsLoading(true)

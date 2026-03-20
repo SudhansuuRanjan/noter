@@ -148,12 +148,12 @@ function AppLayout() {
                     ) : (
                         <div className="flex-1 flex items-center justify-center bg-zinc-50 dark:bg-zinc-950">
                             <div className="text-center animate-fade-in">
-                                <div className="w-20 h-20 rounded-3xl bg-zinc-100 dark:bg-zinc-800/40 flex items-center justify-center mx-auto mb-6 border border-zinc-200 dark:border-zinc-700/20">
-                                    <svg className="w-10 h-10 text-zinc-300 dark:text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="w-20 h-20 rounded-3xl bg-indigo-100 dark:bg-indigo-800/40 flex items-center justify-center mx-auto mb-6 border border-indigo-200 dark:border-indigo-700/20">
+                                    <svg className="w-10 h-10 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
                                 </div>
-                                <h2 className="text-zinc-400 dark:text-zinc-500 text-base font-medium mb-2">No note selected</h2>
+                                <h2 className="text-indigo-400 dark:text-indigo-500 text-base font-medium mb-2">No note selected</h2>
                                 <p className="text-zinc-300 dark:text-zinc-600 text-sm">Pick a note from the sidebar or create a new one</p>
                             </div>
                         </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { Key, ShieldCheck, AlertCircle, X, Sparkles, Settings as SettingsIcon, Palette } from 'lucide-react'
+import { Key, ShieldCheck, AlertCircle, X, Sparkles, Settings as SettingsIcon, Palette, Trash, Trash2Icon } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
 import { withViewTransition } from '../utils/transition'
 import { useHotkey } from '@tanstack/react-hotkeys'
@@ -62,14 +62,33 @@ export const AISettings: React.FC<AISettingsProps> = ({ isOpen, onClose }) => {
         }
     }
 
+    const handleClearKey = async () => {
+        setIsSaving(true)
+        setStatus(null)
+        try {
+            const success = await window.electronAPI.clearKey()
+            if (success) {
+                setStatus({ type: 'success', message: 'API Key removed successfully.' })
+                setHasKey(false)
+                setApiKey('')
+            } else {
+                setStatus({ type: 'error', message: 'Failed to remove key.' })
+            }
+        } catch (e) {
+            setStatus({ type: 'error', message: 'An unexpected error occurred.' })
+        } finally {
+            setIsSaving(false)
+        }
+    }
+
     if (!isOpen) return null
 
     return createPortal(
-        <div 
+        <div
             className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={() => withViewTransition(onClose)}
         >
-            <div 
+            <div
                 className="w-full max-w-xl bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col"
                 onClick={e => e.stopPropagation()}
             >
@@ -201,7 +220,7 @@ export const AISettings: React.FC<AISettingsProps> = ({ isOpen, onClose }) => {
                                 </div>
                             )}
 
-                            <div className="pt-2">
+                            <div className="pt-2 gap-1 flex">
                                 <button
                                     onClick={handleSave}
                                     disabled={isSaving || !apiKey}
@@ -214,6 +233,15 @@ export const AISettings: React.FC<AISettingsProps> = ({ isOpen, onClose }) => {
                                     )}
                                     {hasKey ? 'Update API Key' : 'Save Connection'}
                                 </button>
+                                {hasKey && (
+                                    <button
+                                        onClick={handleClearKey}
+                                        disabled={isSaving}
+                                        className="py-2.5 px-2.5 text-sm bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 disabled:opacity-50 disabled:cursor-not-allowed font-semibold rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                                    >
+                                        <Trash2Icon />
+                                    </button>
+                                )}
                             </div>
 
                             <div className="pt-3 flex items-center justify-center">

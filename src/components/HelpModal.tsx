@@ -25,6 +25,8 @@ Welcome to Noter! This is a lightning-fast, local-first markdown editor. Here ar
 
 ## 🤖 AI Assistant (Writing & Editing)
 Transform your notes with integrated AI. Click the **Sparkles** icon in the toolbar or use the Command Palette to:
+- **Slash Commands**: Type \`/write [prompt]\` or \`/complete [prompt]\` directly in the editor and press Enter to generate text seamlessly.
+- **Inline Editing**: Apply AI-generated text over your existing selection with non-destructive **Accept** and **Reject** buttons.
 - **Rephrase**: Make your writing more professional.
 - **Summarize**: Turn long notes into concise bullet points.
 - **Fix Grammar**: Polish your spelling and syntax instantly.
@@ -41,6 +43,8 @@ Connect your thoughts with Wiki-Style links using \`[[Note Title]]\`.
 Make Noter your own. Navigate to **AI Settings** (via Gear icon or Cmd+K) to:
 - Toggle between **Light** and **Dark** modes.
 - Choose your **Accent Color** (Indigo, Cyan, or Pink) which affects the entire UI.
+- Adjust the **Editor Content Width** (Medium, Large, Full width).
+- *Preferences now persist securely across application restarts!*
 
 ## � Professional PDF Export
 Need a hard copy? Click the **PDF** icon in the preview toolbar. Noter generates a clean, paginated PDF with:
