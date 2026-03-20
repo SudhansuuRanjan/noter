@@ -157,9 +157,9 @@ export function CommandPalette() {
                                 <button
                                     key={action.id}
                                     onClick={() => handleSelectAction(action.action)}
-                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-zinc-100 dark:bg-zinc-800 transition-colors text-left"
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors text-left"
                                 >
-                                    <div className="flex items-center justify-center w-6 h-6 rounded-md bg-zinc-100 dark:bg-zinc-800">
+                                    <div className="flex items-center justify-center w-6 h-6 rounded-md bg-zinc-100 dark:bg-zinc-700">
                                         {action.icon}
                                     </div>
                                     <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200 flex-1">{action.label}</span>

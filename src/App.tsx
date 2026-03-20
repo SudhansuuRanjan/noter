@@ -146,15 +146,61 @@ function AppLayout() {
                             </div>
                         </div>
                     ) : (
-                        <div className="flex-1 flex items-center justify-center bg-zinc-50 dark:bg-zinc-950">
-                            <div className="text-center animate-fade-in">
-                                <div className="w-20 h-20 rounded-3xl bg-indigo-100 dark:bg-indigo-800/40 flex items-center justify-center mx-auto mb-6 border border-indigo-200 dark:border-indigo-700/20">
-                                    <svg className="w-10 h-10 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
+                        <div className="flex-1 flex flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-950/50 relative overflow-hidden">
+                            {/* Decorative background grid */}
+                            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+                            
+                            <div className="text-center animate-in zoom-in-95 fade-in duration-500 relative z-10 max-w-sm w-full">
+                                <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-tr from-indigo-500/20 to-cyan-500/20 flex items-center justify-center mx-auto mb-8 border border-white/50 dark:border-indigo-500/10 shadow-2xl shadow-indigo-500/10 backdrop-blur-3xl">
+                                    <div className="w-12 h-12 bg-white dark:bg-zinc-900 rounded-2xl flex items-center justify-center shadow-inner border border-zinc-200 dark:border-zinc-800">
+                                        <svg className="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                        </svg>
+                                    </div>
                                 </div>
-                                <h2 className="text-indigo-400 dark:text-indigo-500 text-base font-medium mb-2">No note selected</h2>
-                                <p className="text-zinc-300 dark:text-zinc-600 text-sm">Pick a note from the sidebar or create a new one</p>
+                                
+                                <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-zinc-800 to-zinc-500 dark:from-zinc-100 dark:to-zinc-400 mb-3 tracking-tight">
+                                    Capture Your Thoughts
+                                </h2>
+                                
+                                <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-10 leading-relaxed px-4">
+                                    Select an existing note from the sidebar or start fresh with a new one.
+                                </p>
+
+                                <div className="flex flex-col gap-3 px-8">
+                                    <button 
+                                        onClick={async () => {
+                                            const canOpen = await ensureHistorySynced()
+                                            if (canOpen) createNote()
+                                        }}
+                                        className="group relative flex items-center justify-start gap-2 w-full py-3 bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600 text-white text-sm font-semibold rounded-xl shadow-lg active:scale-95 transition-all overflow-hidden"
+                                    >
+                                        <span className="relative pl-4 z-10 flex items-center gap-2">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
+                                            Create New Note
+                                        </span>
+                                        <div className="absolute right-3.5 flex items-center gap-1 opacity-60 text-[10px] text-zinc-200 dark:text-zinc-600 font-mono font-bold tracking-wider">
+                                            <span className="px-1.5 py-0.5 rounded bg-zinc-800 dark:bg-zinc-200">⌘</span>
+                                            <span className="px-1.5 py-0.5 rounded bg-zinc-800 dark:bg-zinc-200">N</span>
+                                        </div>
+                                    </button>
+
+                                    <button 
+                                        onClick={() => {
+                                            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))
+                                        }}
+                                        className="group relative flex items-center justify-start gap-2 w-full py-3 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm font-semibold rounded-xl transition-all border border-zinc-200 dark:border-zinc-800 active:scale-95"
+                                    >
+                                        <span className="flex items-center gap-2 text-sm pl-4">
+                                            <svg className="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                            Open Command Palette
+                                        </span>
+                                        <div className="absolute right-3.5 flex items-center gap-1 opacity-60 text-[10px] font-mono font-bold tracking-wider dark:text-zinc-400 text-zinc-700">
+                                            <span className="px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">⌘</span>
+                                            <span className="px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">K</span>
+                                        </div>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}

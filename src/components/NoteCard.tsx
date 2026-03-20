@@ -39,10 +39,10 @@ export function NoteCard({ note, isActive }: NoteCardProps) {
                 }
             }}
             className={`
-        group relative px-3 py-3 rounded-xl cursor-pointer transition-all duration-150 mb-1
+        group relative px-3 py-3 border rounded-xl cursor-pointer transition-all duration-150 mb-1
         ${isActive
                     ? 'bg-indigo-50 dark:bg-indigo-600/20 border border-indigo-200 dark:border-indigo-500/30'
-                    : 'hover:bg-zinc-100 dark:hover:bg-zinc-800/60 border border-transparent'
+                    : 'hover:bg-zinc-100 dark:hover:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-800/60'
                 }
       `}
         >
