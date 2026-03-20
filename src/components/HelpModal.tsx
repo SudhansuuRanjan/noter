@@ -20,7 +20,8 @@ Welcome to Noter! This is a lightning-fast, local-first markdown editor. Here ar
 ## ⚡ Quick Shortcuts
 - **Cmd/Ctrl + K**: Open Command Palette (Search & Actions)
 - **Cmd/Ctrl + N**: Create a new note instantly
-- **Cmd/Ctrl + S**: Forced save (Auto-save is also active)
+- **Cmd/Ctrl + Shift + F**: Toggle **Zen Mode** (Focus Mode)
+- **Cmd/Ctrl + Shift + T**: Open **Tasks Dashboard**
 - **Esc**: Close modals or exit full-screen views
 
 ## 🤖 AI Assistant (Writing & Editing)
@@ -32,7 +33,20 @@ Transform your notes with integrated AI. Click the **Sparkles** icon in the tool
 - **Fix Grammar**: Polish your spelling and syntax instantly.
 - **Continue Writing**: Let the AI expand on your existing ideas.
 - **Custom Prompts**: Ask the AI anything directly!
+- **Zen Mode Integration**: AI features are fully accessible even in the minimal Zen interface.
 
+## 🧘‍♂️ Zen Mode (Focus Mode)
+Need to get into a flow state? Hit **Cmd+Shift+F** to:
+- **Hide the Noise**: Instantly collapses the sidebar and toolbar.
+- **Center Focus**: Centers your text in a clean, high-readability column (\`max-width: 3xl\`).
+- **Peek Toolbar**: Hover near the top of the screen to reveal the toolbar and context actions when you need them.
+
+## ✅ Unified Tasks Dashboard
+Never lose a checklist item again. Hit **Cmd+Shift+T** or click the **Check-Square** icon to:
+- **Global Overview**: Scans all your notes for incomplete (\`- [ ]\`) and completed (\`- [x]\`) tasks.
+- **Bi-directional Sync**: Checking a task in the dashboard instantly updates the original markdown file.
+- **Progress Tracking**: See your completion percentage across all your active projects.
+- **Quick Jump**: Click any note title in the dashboard to jump straight to the source.
 ## 🔗 Intelligent Note Linking
 Connect your thoughts with Wiki-Style links using \`[[Note Title]]\`. 
 - Clicking a link opens a **Smart Router** modal.

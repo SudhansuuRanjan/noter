@@ -1,83 +1,161 @@
 # Noter 📝
 
-**Noter** is a modern, local-first note-taking application designed for speed, privacy, and focused writing. Built with Electron, React, Vite, and Tailwind CSS, it offers a premium, distraction-free environment for your thoughts.
+Noter is a fast, local-first note-taking app built for people who just want to think and write without distractions.
 
-![Noter Icon](./snapshot.png)
+It stores everything as plain `.md` files on your machine, so your notes are always yours. No accounts, no sync issues, no weird lock-in. Just clean writing, powerful tools, and a smooth experience.
 
-## ✨ Premium Features
+---
 
-### 🤖 Intelligence & Writing
-- **AI Writer & Editor**: Integrated writing assistant for rephrasing, summarizing, grammar correction, and content expansion. Powered by context-aware LLM flows.
-- **AI Slash Commands**: Trigger AI actions directly from the editor using `/write [prompt]` or `/complete [prompt]`.
-- **Inline AI Suggestions**: Real-time AI editing with integrated **Accept** and **Reject** controls for non-destructive content updates.
-- **Advanced Markdown**: Native support for **Mermaid Diagrams** (charts, flows), **LaTeX Math** (inline and block formulas), and enhanced **Interactive Tables**.
-- **In-Note Search (Cmd + F)**: High-speed string locator integrated directly into the editor.
-- **Code Copy**: Hover-activated copy buttons on all code blocks with clean AST-based string extraction.
+## Why I built this
 
-### 🚀 Navigation & Portability
-- **Command Palette (Cmd + K)**: Universal search and action bar. Instantly navigate between notes, change color themes, or trigger app commands.
-- **Smart Note Links**: Connect thoughts with Wiki-Style \`[[Note Links]]\`. Features a smart router to open links in the current view or a **Dedicated New Window**.
-- **Daily Notes**: One-click journaling with auto-titling (e.g., "12 Mar, 2025 (Mon)").
-- **Professional PDF Export**: One-click native PDF generation with optimized print typography and isolated styling.
+Most note apps either feel too heavy, too online, or too cluttered.
 
-### 🎨 Personalization & UI
-- **Dynamic Accent Themes**: Choose between **Indigo**, **Cyan**, or **Pink** themes that instantly rebind the entire app's color palette. Now fully **Persistent** across app restarts.
-- **Customizable Layout**: Adjust the editor content width (Medium, Large, Full) to suit your writing style. Preferences are automatically saved.
-- **Great UX**: A beautifully crafted UI featuring elegant dark/light modes, backdrop blurs, and smooth frameless transitions.
-- **Sidebar Organization**: Smart sorting by Name/Date, inline hashtag extraction, and customizable file labels.
+I wanted something that:
 
-### 🛡️ Built for Professionals
-- **Revision History**: Silent, automatic versioning. Preview past edit sessions and restore from the "Time Machine" modal.
-- **Global Error Boundary**: Improved stability with a centralized error management system to ensure you never lose your work.
-- **Local-First**: Standard \`.md\` file storage. Your data never leaves your machine.
-- **Attachments Manager**: Secure local images and file storage with drag-and-drop integration.
+* opens instantly
+* respects privacy
+* works with simple markdown files
+* still feels modern and powerful
 
-## 🛠️ Tech Stack
+So Noter is basically that.
 
-- **Runtime**: [Electron](https://www.electronjs.org/)
-- **Frontend**: [React 18](https://reactjs.org/) + [Vite](https://vitejs.dev/)
-- **Architecture**: [Bun](https://bun.sh/) managed local-first filesystem
-- **Styling**: [Tailwind CSS 3](https://tailwindcss.com/)
-- **Editor**: [CodeMirror 6](https://codemirror.net/) with custom extensions
-- **Icons**: [Lucide React](https://lucide.dev/)
+---
 
-## 🚀 Getting Started
+## What you get
 
-### Installation
+### Writing feels smooth
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/SudhansuuRanjan/noter.git
-   cd noter
-   ```
+* Clean markdown editor with live preview
+* Support for Mermaid diagrams, LaTeX, tables
+* Built-in search inside notes (Cmd/Ctrl + F)
+* Copy buttons on code blocks (small thing, big win)
 
-2. **Install dependencies**
-   ```bash
-   bun install
-   ```
-   *(or `npm install`)*
+---
 
-3. **Development**
-   ```bash
-   bun run dev
-   ```
+### AI, but not annoying
 
-### Building for Production
+There’s an AI assistant built in, but it stays out of your way.
 
-To create a distributable application:
+You can:
+
+* rephrase text
+* summarize notes
+* fix grammar
+* expand ideas
+* or just type `/write something...` and let it continue
+
+Everything works inline, with accept/reject so you stay in control.
+
+---
+
+### Navigation is fast
+
+* Command palette (Cmd/Ctrl + K) for basically everything
+* Quick note creation
+* Wiki-style links like `[[My Note]]`
+* Open notes in a new window when needed
+
+It’s designed so you don’t think about navigation.
+
+---
+
+### Actually useful features
+
+* Daily notes
+* Global tasks dashboard (pulls todos from all notes)
+* Revision history (like a mini time machine)
+* PDF export that actually looks clean
+
+---
+
+### Looks good, stays simple
+
+* Light / dark mode
+* Accent colors (Indigo, Cyan, Pink)
+* Subtle glass UI, nothing overdone
+* Zen mode when you just want to focus
+
+---
+
+### Local-first (important)
+
+* Everything is stored as `.md` files
+* No cloud dependency
+* No data collection
+* Works offline, always
+
+---
+
+## Tech stack (if you care)
+
+* Electron
+* React + Vite
+* Tailwind CSS
+* CodeMirror 6
+* Bun (for local tooling)
+
+---
+
+## Getting started
+
+```bash
+git clone https://github.com/SudhansuuRanjan/noter.git
+cd noter
+bun install
+bun run dev
+```
+
+Or use npm if you prefer:
+
+```bash
+npm install
+npm run dev
+```
+
+---
+
+## Build
+
 ```bash
 bun run build
 ```
-Binaries will be generated in the `release/` directory.
 
-## 📂 Project Structure
+You’ll find the app in the `release/` folder.
 
-- `electron/` — Main process logic, IPC handlers, and filesystem bridge.
-- `src/` — Renderer process (React application).
-  - `context/` — Centralized state management for notes and app settings.
-  - `components/` — Modular UI components (Editor, Preview, Sidebar, Modals).
-  - `styles/` — Global design tokens and Tailwind configuration.
+---
 
-## ⚖️ License
+## Project structure
 
-Distributed under the MIT License. See `LICENSE` for more information.
+* `electron/` → main process, filesystem handling
+* `src/` → React app
+
+  * `components/` → UI pieces
+  * `context/` → state management
+  * `styles/` → Tailwind + design
+
+---
+
+## A quick power guide
+
+Some shortcuts you’ll actually use:
+
+* Cmd/Ctrl + K → command palette
+* Cmd/Ctrl + N → new note
+* Cmd/Ctrl + Shift + F → Zen mode
+* Cmd/Ctrl + Shift + T → tasks dashboard
+
+---
+
+## Final note
+
+This isn’t trying to be the next Notion or Obsidian killer.
+
+It’s just a solid, fast, private note app that gets out of your way.
+
+If that’s what you’re looking for, you’ll probably like it.
+
+---
+
+## License
+
+MIT — do whatever you want with it.
