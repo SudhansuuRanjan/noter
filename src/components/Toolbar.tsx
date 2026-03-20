@@ -52,9 +52,12 @@ export function Toolbar() {
 
     const isMac = window?.electronAPI?.platform === 'darwin'
     const paddingLeftClass = (!state.isSidebarOpen && isMac) ? 'pl-20' : 'pl-4'
+    const zenClasses = state.isZenMode 
+        ? "absolute top-0 left-0 right-0 opacity-0 hover:opacity-100 bg-white/95 dark:bg-zinc-950/95 transition-opacity duration-300 z-50 border-b border-zinc-200 dark:border-zinc-800/60" 
+        : "relative bg-white/80 dark:bg-zinc-900/40 backdrop-blur-sm z-30 border-b border-zinc-200 dark:border-zinc-800/60"
 
     return (
-        <div className={`h-11 gap-1 flex-shrink-0 flex items-center justify-between pr-4 border-b border-zinc-200 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-900/40 backdrop-blur-sm transition-all duration-200 relative z-30 ${paddingLeftClass}`} style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
+        <div className={`h-11 gap-1 flex-shrink-0 flex items-center justify-between pr-4 transition-all duration-200 ${paddingLeftClass} ${zenClasses}`} style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
             {/* Left: Note title + save indicator */}
             <div className="flex items-center gap-3 min-w-0" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
                 <button

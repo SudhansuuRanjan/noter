@@ -312,7 +312,7 @@ export function Editor() {
                     aiSuggestionSupport(),
                     aiSlashCommandExtension
                 ]}
-                className="flex-1 overflow-hidden h-full"
+                className={`flex-1 overflow-hidden h-full transition-all duration-500 ease-in-out ${state.isZenMode ? 'max-w-3xl mx-auto w-full px-4' : 'w-full'}`}
                 style={{ height: '100%' }}
                 basicSetup={{
                     lineNumbers: false,

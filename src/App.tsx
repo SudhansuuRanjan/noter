@@ -7,6 +7,7 @@ import { Toolbar } from './components/Toolbar'
 import { DeleteModal } from './components/DeleteModal'
 import { CommandPalette } from './components/CommandPalette'
 import { UpdateBanner } from './components/UpdateBanner'
+import { TaskDashboard } from './components/TaskDashboard'
 import { NotesProvider, useNotes } from './context/NotesContext'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 
@@ -41,8 +42,9 @@ function SecondaryLayout() {
 }
 
 function AppLayout() {
-    const { state, activeNote, createNote, ensureHistorySynced } = useNotes()
+    const { state, activeNote, createNote, ensureHistorySynced, toggleZen } = useNotes()
     const [windowWidth, setWindowWidth] = useState(window.innerWidth)
+    const [isTaskDashboardOpen, setIsTaskDashboardOpen] = useState(false)
 
     useEffect(() => {
         const handleResize = () => setWindowWidth(window.innerWidth)
@@ -53,7 +55,7 @@ function AppLayout() {
     // Global hotkeys
     useEffect(() => {
         const handleGlobalKeyDown = (e: KeyboardEvent) => {
-            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'n') {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'n' && !e.shiftKey) {
                 e.preventDefault()
                 ensureHistorySynced().then(canOpen => {
                     if (canOpen) {
@@ -61,10 +63,23 @@ function AppLayout() {
                     }
                 })
             }
+            if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
+                e.preventDefault()
+                toggleZen()
+            }
+            if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 't') {
+                e.preventDefault()
+                setIsTaskDashboardOpen(v => !v)
+            }
         }
         window.addEventListener('keydown', handleGlobalKeyDown)
-        return () => window.removeEventListener('keydown', handleGlobalKeyDown)
-    }, [createNote, ensureHistorySynced])
+        window.addEventListener('open-tasks', () => setIsTaskDashboardOpen(true))
+
+        return () => {
+            window.removeEventListener('keydown', handleGlobalKeyDown)
+            window.removeEventListener('open-tasks', () => setIsTaskDashboardOpen(true))
+        }
+    }, [createNote, ensureHistorySynced, toggleZen])
 
     // Robust detection for Electron/Vite
     const mode = window.electronAPI.windowArgs.mode
@@ -210,6 +225,7 @@ function AppLayout() {
             <CommandPalette />
             <DeleteModal />
             <UpdateBanner />
+            <TaskDashboard isOpen={isTaskDashboardOpen} onClose={() => setIsTaskDashboardOpen(false)} />
         </div>
     )
 }

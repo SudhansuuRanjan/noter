@@ -23,6 +23,7 @@ interface NotesState {
     previewWidth: 'medium' | 'large' | 'full'
     historySyncState: 'synced' | 'pending' | 'syncing'
     isSettingsLoaded: boolean
+    isZenMode: boolean
 }
 
 type Action =
@@ -39,6 +40,7 @@ type Action =
     | { type: 'SET_SAVING'; saving: boolean }
     | { type: 'SET_DELETE_CONFIRM'; id: string | null }
     | { type: 'TOGGLE_SIDEBAR' }
+    | { type: 'TOGGLE_ZEN' }
     | { type: 'UPDATE_NOTE'; id: string; content: string; updatedAt: string }
     | { type: 'REMOVE_NOTE'; id: string }
     | { type: 'TOGGLE_STAR'; id: string; starred: boolean }
@@ -98,6 +100,15 @@ function notesReducer(state: NotesState, action: Action): NotesState {
             return { ...state, deleteConfirmId: action.id }
         case 'TOGGLE_SIDEBAR':
             return { ...state, isSidebarOpen: !state.isSidebarOpen }
+        case 'TOGGLE_ZEN':
+            return {
+                ...state,
+                isZenMode: !state.isZenMode,
+                // Automatically close sidebar when entering Zen mode, or restore it when exiting
+                isSidebarOpen: state.isZenMode ? true : false,
+                // In Zen mode, we typically want the Editor view or Split view. Let's make sure it's at least 'edit' or 'split'.
+                viewMode: state.isZenMode ? state.viewMode : (state.viewMode === 'preview' ? 'edit' : state.viewMode)
+            }
         case 'UPDATE_NOTE': {
             const tagsMatch = Array.from(action.content.matchAll(/(?:^|\s)(#[a-zA-Z0-9_-]+)/g))
             const tags = tagsMatch.length > 0 ? Array.from(new Set(tagsMatch.map(m => m[1]))) : []
@@ -188,8 +199,8 @@ function notesReducer(state: NotesState, action: Action): NotesState {
         case 'SET_HISTORY_SYNC_STATE':
             return { ...state, historySyncState: action.syncState }
         case 'LOAD_SETTINGS':
-            return { 
-                ...state, 
+            return {
+                ...state,
                 theme: action.settings.theme || state.theme,
                 accentColor: action.settings.accentColor || state.accentColor,
                 previewWidth: action.settings.previewWidth || state.previewWidth,
@@ -231,7 +242,8 @@ const initialState: NotesState = {
     accentColor: localStorage.getItem('noter-accent') || 'indigo',
     previewWidth: (localStorage.getItem('noter-preview-width') as 'medium' | 'large' | 'full') || 'medium',
     historySyncState: 'synced',
-    isSettingsLoaded: false
+    isSettingsLoaded: false,
+    isZenMode: false
 }
 
 interface NotesContextValue {
@@ -240,7 +252,7 @@ interface NotesContextValue {
     filteredNotes: Note[]
     loadNotes: () => Promise<void>
     createNote: () => Promise<void>
-    openDailyNote: () => Promise<void>
+    openDailyNote: (targetDate?: Date) => Promise<void>
     updateNote: (id: string, content: string) => void
     deleteNote: (id: string) => Promise<void>
     toggleStar: (id: string) => Promise<void>
@@ -256,6 +268,7 @@ interface NotesContextValue {
     clearTags: () => void
     toggleTheme: () => void
     toggleSidebar: () => void
+    toggleZen: () => void
     setDeleteConfirm: (id: string | null) => void
     openFolder: () => void
     setSortBy: (sortBy: 'title' | 'createdAt' | 'updatedAt') => void
@@ -341,8 +354,8 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
         })
     }, [])
 
-    const openDailyNote = useCallback(async () => {
-        const date = new Date()
+    const openDailyNote = useCallback(async (targetDate?: Date) => {
+        const date = targetDate || new Date()
         const day = date.getDate()
         const monthMatch = date.toLocaleString('en-IN', { month: 'short' })
         const yearMatch = date.getFullYear()
@@ -449,11 +462,11 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
         if (!noteToClone) return
 
         const result = await window.electronAPI.createNote()
-        
+
         const lines = noteToClone.content.split('\n')
         let newContent = noteToClone.content
         let newTitle = noteToClone.title + ' (Copy)'
-        
+
         if (lines.length > 0 && lines[0].startsWith('# ')) {
             lines[0] = lines[0] + ' (Copy)'
             newContent = lines.join('\n')
@@ -475,7 +488,7 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             pinned: false,
             starred: false
         }
-        
+
         withViewTransition(() => {
             dispatch({ type: 'ADD_NOTE', note })
             dispatch({ type: 'SET_ACTIVE', id: note.id })
@@ -597,6 +610,10 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
 
     const toggleSidebar = useCallback(() => {
         withViewTransition(() => dispatch({ type: 'TOGGLE_SIDEBAR' }))
+    }, [])
+
+    const toggleZen = useCallback(() => {
+        withViewTransition(() => dispatch({ type: 'TOGGLE_ZEN' }))
     }, [])
 
     const setViewMode = useCallback((mode: ViewMode) => {
@@ -766,6 +783,7 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             togglePin,
             importNotes,
             exportNote,
+            exportPDF,
             setActiveNote,
             setViewMode,
             setFilter,
@@ -775,6 +793,7 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             clearTags,
             toggleTheme,
             toggleSidebar,
+            toggleZen,
             setDeleteConfirm,
             openFolder,
             setSortBy,
@@ -784,7 +803,6 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             deleteLabel,
             updateNoteLabel,
             openNoteByTitle,
-            exportPDF,
             setAccentColor,
             setPreviewWidth,
             saveVersionHistory,

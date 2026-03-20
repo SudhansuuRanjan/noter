@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Search, Plus, Star, FileText, X, ChevronRight, ChevronDown, Edit2, Check, Calendar, HelpCircle, ArrowUpDown, SortAsc, SortDesc, Sparkles, Settings, FileEdit } from 'lucide-react'
+import { Search, Plus, Star, FileText, X, ChevronRight, ChevronDown, Edit2, Check, Calendar, HelpCircle, ArrowUpDown, SortAsc, SortDesc, Sparkles, Settings, FileEdit, CheckSquare } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
 import { NoteCard } from './NoteCard'
 import { withViewTransition } from '../utils/transition'
@@ -137,6 +137,13 @@ export function Sidebar() {
                         title="Daily Note"
                     >
                         <Calendar size={14} />
+                    </button>
+                    <button
+                        onClick={() => window.dispatchEvent(new Event('open-tasks'))}
+                        className="py-2 px-3 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 text-xs font-medium transition-all duration-200 active:scale-95"
+                        title="Tasks Dashboard (Cmd+Shift+T)"
+                    >
+                        <CheckSquare size={14} />
                     </button>
                     <button
                         onClick={importNotes}
