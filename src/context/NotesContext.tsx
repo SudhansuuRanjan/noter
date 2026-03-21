@@ -504,11 +504,10 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             // Capture the content we're about to save
             const contentToSave = content
             const result = await window.electronAPI.writeNote(id, contentToSave)
-            // Only clear pending ref if no new content was typed while saving
-            // (i.e., the pending content is still the same as what we saved)
-            if (pendingNoteContentRef.current[id] === contentToSave) {
-                delete pendingNoteContentRef.current[id]
-            }
+            // Don't clear pendingNoteContentRef here — it will be cleared when
+            // the user switches away from this note. Clearing it here causes a
+            // race condition where the activeNote memo falls back to stale
+            // state.notes content, resetting the CodeMirror cursor.
             dispatch({ type: 'UPDATE_NOTE', id, content: contentToSave, updatedAt: result.updatedAt })
         }, 800)
     }, [])
@@ -604,6 +603,8 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
                     syncState: content === lastSyncedContent ? 'synced' : 'pending'
                 })
             }
+            // Clean up pending ref for the note we're leaving
+            delete pendingNoteContentRef.current[currentId]
         }
         withViewTransition(() => dispatch({ type: 'SET_ACTIVE', id }))
     }, [state.activeNoteId, state.notes])
