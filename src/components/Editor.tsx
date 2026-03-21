@@ -21,7 +21,7 @@ const customTheme = EditorView.theme({
     '&.cm-focused': { outline: 'none !important' },
     '.cm-gutters': { display: 'none' },
     '.cm-cursor': { borderLeftColor: '#6366f1' }
-}) 
+})
 
 const mathDecorator = new MatchDecorator({
     regexp: /\$\$[\s\S]*?\$\$|\$[^\n$]*?\$/g,
@@ -60,10 +60,16 @@ export function Editor() {
     }, [toolbarPos, selection])
 
     const activeNoteId = activeNote?.id
+    const debounceRef = useRef<NodeJS.Timeout | null>(null)
+
     const handleChange = useCallback((value: string) => {
-        if (activeNoteId) {
+        if (!activeNoteId) return
+
+        if (debounceRef.current) clearTimeout(debounceRef.current)
+
+        debounceRef.current = setTimeout(() => {
             updateNote(activeNoteId, value)
-        }
+        }, 300) // tweak if needed
     }, [activeNoteId, updateNote])
 
     const handleFileUpload = async (file: File, view: EditorView, insertAt?: number) => {
@@ -214,7 +220,7 @@ export function Editor() {
         })
 
         const systemPrompt = 'You are a helpful AI writing assistant. Return ONLY the output text or generated content in Markdown. Do not include introductory text.'
-        const actionPrompt = type === 'write' 
+        const actionPrompt = type === 'write'
             ? `Write content about: ${prompt}`
             : `Complete this thought or prompt: ${prompt}`
 
@@ -241,17 +247,17 @@ export function Editor() {
             const { state } = view
             const selection = state.selection.main
             if (!selection.empty) return false
-            
+
             const line = state.doc.lineAt(selection.head)
             const textBeforeCursor = line.text.slice(0, selection.head - line.from).trimEnd()
-            
+
             // Match /write [prompt] or /complete [prompt]
             const match = textBeforeCursor.match(/^\/(write|complete)\s*(.*)$/i)
-            
+
             if (match) {
                 const type = match[1].toLowerCase() as 'write' | 'complete'
                 const prompt = match[2].trim()
-                
+
                 handleSlashCommand(type, prompt, line.from, selection.head)
                 return true
             }
@@ -277,7 +283,8 @@ export function Editor() {
     return (
         <div className="flex-1 flex flex-col h-full overflow-hidden bg-white dark:bg-zinc-950">
             <CodeMirror
-                value={activeNote.content}
+                key={activeNoteId}
+                value={activeNote?.content || ''}
                 onChange={handleChange}
                 onUpdate={(update) => {
                     if (update.selectionSet || update.docChanged) {
