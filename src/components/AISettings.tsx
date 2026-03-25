@@ -85,10 +85,14 @@ export const AISettings: React.FC<AISettingsProps> = ({ isOpen, onClose }) => {
 
     return createPortal(
         <div
+            role="presentation"
             className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={() => withViewTransition(onClose)}
         >
             <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="app-settings-title"
                 className="w-full max-w-xl bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col"
                 onClick={e => e.stopPropagation()}
             >
@@ -98,12 +102,13 @@ export const AISettings: React.FC<AISettingsProps> = ({ isOpen, onClose }) => {
                             <SettingsIcon className="w-5 h-5 text-indigo-500" />
                         </div>
                         <div>
-                            <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">App Settings</h2>
+                            <h2 id="app-settings-title" className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">App Settings</h2>
                             <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">Preferences & Integrations</p>
                         </div>
                     </div>
                     <button
                         onClick={() => withViewTransition(onClose)}
+                        aria-label="Close settings"
                         className="p-2 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 rounded-lg transition-colors"
                     >
                         <X className="w-4 h-4 text-zinc-400" />
@@ -113,12 +118,14 @@ export const AISettings: React.FC<AISettingsProps> = ({ isOpen, onClose }) => {
                 <div className="flex border-b border-zinc-100 dark:border-zinc-800/60 bg-zinc-50/30 dark:bg-zinc-900">
                     <button
                         onClick={() => withViewTransition(() => setActiveTab('appearance'))}
+                        aria-pressed={activeTab === 'appearance'}
                         className={`flex-1 py-3 text-xs font-semibold tracking-wide transition-colors border-b-2 ${activeTab === 'appearance' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
                     >
                         Appearance
                     </button>
                     <button
                         onClick={() => withViewTransition(() => setActiveTab('ai'))}
+                        aria-pressed={activeTab === 'ai'}
                         className={`flex-1 py-3 text-xs font-semibold tracking-wide transition-colors border-b-2 ${activeTab === 'ai' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
                     >
                         AI Assistant
@@ -138,6 +145,8 @@ export const AISettings: React.FC<AISettingsProps> = ({ isOpen, onClose }) => {
                                         <button
                                             key={theme.id}
                                             onClick={() => withViewTransition(() => setAccentColor(theme.id))}
+                                            aria-pressed={state.accentColor === theme.id}
+                                            aria-label={`Set accent color to ${theme.name}`}
                                             className={`
                                                 relative flex flex-col items-center gap-2 p-2 rounded-xl border-2 transition-all
                                                 ${state.accentColor === theme.id
@@ -168,6 +177,8 @@ export const AISettings: React.FC<AISettingsProps> = ({ isOpen, onClose }) => {
                                         <button
                                             key={option.id}
                                             onClick={() => withViewTransition(() => setPreviewWidth(option.id as 'medium' | 'large' | 'full'))}
+                                            aria-pressed={state.previewWidth === option.id}
+                                            aria-label={`Set editor content width to ${option.label}`}
                                             className={`
                                                 flex-1 py-2 px-3 text-xs font-medium rounded-xl border transition-all
                                                 ${state.previewWidth === option.id
@@ -194,6 +205,7 @@ export const AISettings: React.FC<AISettingsProps> = ({ isOpen, onClose }) => {
                                     </div>
                                     <input
                                         type="password"
+                                        aria-label="OpenRouter API key"
                                         value={apiKey}
                                         onChange={(e) => setApiKey(e.target.value)}
                                         placeholder={hasKey ? "••••••••••••••••" : "sk-or-v1-..."}
@@ -237,6 +249,7 @@ export const AISettings: React.FC<AISettingsProps> = ({ isOpen, onClose }) => {
                                     <button
                                         onClick={handleClearKey}
                                         disabled={isSaving}
+                                        aria-label="Remove saved API key"
                                         className="py-2.5 px-2.5 text-sm bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 disabled:opacity-50 disabled:cursor-not-allowed font-semibold rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                                     >
                                         <Trash2Icon />

@@ -90,7 +90,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
     if (!mounted || !isOpen) return null
 
     return createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" role="presentation">
             {/* Backdrop */}
             <div
                 className="absolute inset-0 cursor-pointer"
@@ -99,6 +99,9 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
 
             {/* Modal */}
             <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="help-modal-title"
                 className="relative w-full max-w-3xl max-h-[85vh] flex flex-col bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden animate-in zoom-in-95 duration-200"
                 onClick={e => e.stopPropagation()}
             >
@@ -109,12 +112,13 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                             <Book className="w-5 h-5 text-amber-500" />
                         </div>
                         <div>
-                            <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Help & Shortcuts</h2>
+                            <h2 id="help-modal-title" className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Help & Shortcuts</h2>
                             <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">Noter Commands and Features</p>
                         </div>
                     </div>
                     <button
                         onClick={() => withViewTransition(onClose)}
+                        aria-label="Close help modal"
                         className="p-2 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 rounded-lg transition-colors"
                         title="Close (Esc)"
                     >

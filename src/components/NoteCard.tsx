@@ -1,6 +1,7 @@
 import { Star, Trash2, Pin, Link as LinkIcon, Copy } from 'lucide-react'
 import { Note } from '../types/note'
 import { useNotes } from '../context/NotesContext'
+import { useState } from 'react'
 
 interface NoteCardProps {
     note: Note
@@ -26,16 +27,31 @@ function formatDate(dateStr: string) {
 
 export function NoteCard({ note, isActive }: NoteCardProps) {
     const { state, setActiveNote, toggleStar, togglePin, setDeleteConfirm, ensureHistorySynced, cloneNote } = useNotes()
+    const [isHovered, setIsHovered] = useState(false)
 
     const label = note.labelId ? state.labels.find(l => l.id === note.labelId) : null
+    const showActions = isActive || isHovered
+    const openNote = async () => {
+        if (note.id === state.activeNoteId) return
+        const canOpen = await ensureHistorySynced(note.id)
+        if (canOpen) {
+            setActiveNote(note.id)
+        }
+    }
 
     return (
         <div
-            onClick={async () => {
-                if (note.id === state.activeNoteId) return
-                const canOpen = await ensureHistorySynced(note.id)
-                if (canOpen) {
-                    setActiveNote(note.id)
+            role="button"
+            tabIndex={0}
+            aria-pressed={isActive}
+            aria-label={`Open note ${note.title}`}
+            onClick={openNote}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    void openNote()
                 }
             }}
             className={`
@@ -85,13 +101,15 @@ export function NoteCard({ note, isActive }: NoteCardProps) {
                             )}
                         </div>
 
-                        <div className={`flex self-end items-center gap-0.5 flex-shrink-0 transition-opacity duration-150 ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                        <div className={`flex self-end items-center gap-0.5 flex-shrink-0 transition-opacity duration-150 ${showActions ? 'opacity-100' : 'opacity-0 pointer-events-none'
                             }`}>
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation()
                                     navigator.clipboard.writeText(note.id)
                                 }}
+                                tabIndex={showActions ? 0 : -1}
+                                aria-label={`Copy link id for ${note.title}`}
                                 className="p-1.5 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all duration-150"
                                 title="Copy Note ID for linking"
                             >
@@ -99,6 +117,8 @@ export function NoteCard({ note, isActive }: NoteCardProps) {
                             </button>
                             <button
                                 onClick={(e) => { e.stopPropagation(); togglePin(note.id) }}
+                                tabIndex={showActions ? 0 : -1}
+                                aria-label={note.pinned ? `Unpin ${note.title}` : `Pin ${note.title} to top`}
                                 className="p-1.5 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all duration-150"
                                 title={note.pinned ? 'Unpin' : 'Pin to top'}
                             >
@@ -112,6 +132,8 @@ export function NoteCard({ note, isActive }: NoteCardProps) {
                                     e.stopPropagation()
                                     cloneNote(note.id)
                                 }}
+                                tabIndex={showActions ? 0 : -1}
+                                aria-label={`Duplicate ${note.title}`}
                                 className="p-1.5 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all duration-150"
                                 title="Duplicate Note"
                             >
@@ -119,6 +141,8 @@ export function NoteCard({ note, isActive }: NoteCardProps) {
                             </button>
                             <button
                                 onClick={(e) => { e.stopPropagation(); toggleStar(note.id) }}
+                                tabIndex={showActions ? 0 : -1}
+                                aria-label={note.starred ? `Unstar ${note.title}` : `Star ${note.title}`}
                                 className="p-1.5 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all duration-150"
                                 title={note.starred ? 'Unstar' : 'Star'}
                             >
@@ -129,6 +153,8 @@ export function NoteCard({ note, isActive }: NoteCardProps) {
                             </button>
                             <button
                                 onClick={(e) => { e.stopPropagation(); setDeleteConfirm(note.id) }}
+                                tabIndex={showActions ? 0 : -1}
+                                aria-label={`Delete ${note.title}`}
                                 className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-500/20 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-all duration-150"
                                 title="Delete"
                             >

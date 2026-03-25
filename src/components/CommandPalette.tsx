@@ -88,16 +88,21 @@ export function CommandPalette() {
     }
 
     return createPortal(
-        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] bg-black/20 dark:bg-black/40 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] bg-black/20 dark:bg-black/40 backdrop-blur-sm animate-fade-in" role="presentation">
             <div
                 ref={containerRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="command-palette-title"
                 className="w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden transform scale-100 transition-transform"
             >
                 <div className="flex items-center px-4 py-3 border-b border-zinc-100 dark:border-zinc-800/60">
+                    <span id="command-palette-title" className="sr-only">Command palette</span>
                     <Search className="text-zinc-400 mr-3" size={18} />
                     <input
                         ref={inputRef}
                         type="text"
+                        aria-label="Search notes or commands"
                         value={query}
                         onChange={e => setQuery(e.target.value)}
                         placeholder="Search notes or type a command..."

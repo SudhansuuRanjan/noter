@@ -82,7 +82,7 @@ export function Sidebar() {
     const isMac = window?.electronAPI?.platform === 'darwin'
 
     return (
-        <div className="w-full h-full flex flex-col bg-zinc-50 dark:bg-zinc-900/50">
+        <div className="w-full h-full flex flex-col bg-zinc-50 dark:bg-zinc-900/50" role="navigation" aria-label="Notes sidebar">
             {/* Header — traffic light space + drag region */}
             <div className={`${isMac ? 'pt-10' : 'pt-4'} pb-3 px-4`} style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
                 <div className="flex items-center justify-between mb-4">
@@ -96,6 +96,7 @@ export function Sidebar() {
                         <ThemeToggle />
                         <button
                             onClick={() => withViewTransition(() => setIsAISettingsOpen(true))}
+                            aria-label="Open app settings"
                             className="p-2 rounded-lg text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200"
                             title="AI Settings"
                         >
@@ -103,6 +104,7 @@ export function Sidebar() {
                         </button>
                         <button
                             onClick={() => withViewTransition(() => setIsHelpOpen(true))}
+                            aria-label="Open help guide"
                             className="p-2 rounded-lg text-amber-500 hover:text-amber-600 dark:text-amber-400 dark:hover:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all duration-200"
                             title="Help Guide"
                         >
@@ -120,6 +122,7 @@ export function Sidebar() {
                                 await createNote()
                             }
                         }}
+                        aria-label="Create a new note"
                         className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition-all duration-200 shadow-lg shadow-indigo-600/20 active:scale-95"
                         title="Create regular note"
                     >
@@ -133,6 +136,7 @@ export function Sidebar() {
                                 await openDailyNote()
                             }
                         }}
+                        aria-label="Open daily note"
                         className="py-2 px-3 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 text-xs font-medium transition-all duration-200 active:scale-95"
                         title="Daily Note"
                     >
@@ -140,6 +144,7 @@ export function Sidebar() {
                     </button>
                     <button
                         onClick={() => window.dispatchEvent(new Event('open-tasks'))}
+                        aria-label="Open tasks dashboard"
                         className="py-2 px-3 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 text-xs font-medium transition-all duration-200 active:scale-95"
                         title="Tasks Dashboard (Cmd+Shift+T)"
                     >
@@ -147,6 +152,7 @@ export function Sidebar() {
                     </button>
                     <button
                         onClick={importNotes}
+                        aria-label="Import notes"
                         className="py-2 px-3 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 text-xs font-medium transition-all duration-200 active:scale-95"
                         title="Import Markdown file"
                     >
@@ -160,6 +166,7 @@ export function Sidebar() {
                 <div className="relative">
                     <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" />
                     <input
+                        aria-label="Search notes"
                         type="text"
                         placeholder="Search notes..."
                         value={state.searchQuery}
@@ -182,6 +189,7 @@ export function Sidebar() {
                         <button
                             key={f}
                             onClick={() => setFilter(f)}
+                            aria-pressed={state.filterMode === f}
 
                             className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${state.filterMode === f
                                 ? 'bg-indigo-100 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30'
@@ -199,6 +207,7 @@ export function Sidebar() {
 
                 <div className="flex items-center gap-1">
                     <select
+                        aria-label="Sort notes by"
                         value={state.sortBy}
                         onChange={(e) => setSortBy(e.target.value as any)}
                         className="bg-transparent text-[11px] text-zinc-500 dark:text-zinc-400 border-none outline-none cursor-pointer hover:text-indigo-500 transition-colors"
@@ -210,6 +219,7 @@ export function Sidebar() {
                     </select>
                     <button
                         onClick={() => setSortOrder(state.sortOrder === 'asc' ? 'desc' : 'asc')}
+                        aria-label={`Toggle sort order. Current order is ${state.sortOrder === 'asc' ? 'ascending' : 'descending'}`}
                         className="p-1.5 rounded-lg text-zinc-400 hover:text-indigo-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
                         title={`Sort ${state.sortOrder === 'asc' ? 'Ascending' : 'Descending'}`}
                     >
@@ -223,6 +233,8 @@ export function Sidebar() {
                 <div className="flex items-center justify-between mb-1 group">
                     <button
                         onClick={() => setIsLabelsExpanded(!isLabelsExpanded)}
+                        aria-expanded={isLabelsExpanded}
+                        aria-controls="sidebar-labels-section"
                         className="flex items-center gap-1 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
                     >
                         {isLabelsExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -233,6 +245,7 @@ export function Sidebar() {
                             if (!isLabelsExpanded) setIsLabelsExpanded(true)
                             setIsCreatingLabel(!isCreatingLabel)
                         }}
+                        aria-label={isCreatingLabel ? 'Cancel creating label' : 'Create label'}
                         className={`p-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors ${isCreatingLabel ? 'text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'}`}
                         title="Create Label"
                     >
@@ -262,7 +275,7 @@ export function Sidebar() {
                             </form>
                         )}
 
-                        <div className="flex flex-col gap-0.5 mt-1">
+                        <div id="sidebar-labels-section" className="flex flex-col gap-0.5 mt-1">
                             {state.labels.map(label => (
                                 <div key={label.id} className="group flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors">
                                     {editingLabelId === label.id ? (
@@ -288,6 +301,8 @@ export function Sidebar() {
                                         <>
                                             <button
                                                 onClick={() => setSelectedLabelId(state.selectedLabelId === label.id ? null : label.id)}
+                                                aria-pressed={state.selectedLabelId === label.id}
+                                                aria-label={`${state.selectedLabelId === label.id ? 'Clear label filter' : 'Filter by label'} ${label.name}`}
                                                 className={`flex items-center gap-2 flex-1 text-left text-xs ${state.selectedLabelId === label.id ? 'font-medium text-zinc-900 dark:text-zinc-100' : 'text-zinc-600 dark:text-zinc-400'}`}
                                             >
                                                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: label.color }} />
@@ -296,6 +311,7 @@ export function Sidebar() {
                                             <div className="opacity-0 group-hover:opacity-100 flex items-center transition-opacity bg-zinc-100 dark:bg-zinc-800 rounded-md">
                                                 <button
                                                     onClick={() => startEditingLabel(label)}
+                                                    aria-label={`Edit label ${label.name}`}
                                                     className="p-1 text-zinc-400 hover:text-indigo-500 transition-colors"
                                                     title="Edit label"
                                                 >
@@ -303,6 +319,7 @@ export function Sidebar() {
                                                 </button>
                                                 <button
                                                     onClick={() => deleteLabel(label.id)}
+                                                    aria-label={`Delete label ${label.name}`}
                                                     className="p-1 text-zinc-400 hover:text-red-500 transition-colors"
                                                     title="Delete label"
                                                 >
@@ -326,6 +343,8 @@ export function Sidebar() {
                 <div className="flex items-center justify-between mb-1 group">
                     <button
                         onClick={() => setIsTagsExpanded(!isTagsExpanded)}
+                        aria-expanded={isTagsExpanded}
+                        aria-controls="sidebar-tags-section"
                         className="flex items-center gap-1 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
                     >
                         {isTagsExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -342,6 +361,7 @@ export function Sidebar() {
                                 e.stopPropagation()
                                 clearTags()
                             }}
+                            aria-label="Clear selected tags"
                             className="p-1 rounded text-zinc-400 hover:text-red-500 transition-colors"
                             title="Clear all tags"
                         >
@@ -350,11 +370,13 @@ export function Sidebar() {
                     )}
                 </div>
                 {isTagsExpanded && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
+                    <div id="sidebar-tags-section" className="flex flex-wrap gap-1.5 mt-2">
                         {allTags.map(tag => (
                             <button
                                 key={tag}
                                 onClick={() => toggleTag(tag)}
+                                aria-pressed={state.selectedTags.includes(tag)}
+                                aria-label={`${state.selectedTags.includes(tag) ? 'Remove tag filter' : 'Filter by tag'} ${tag}`}
                                 className={`px-2 py-1 rounded-md text-[11px] font-medium transition-colors ${state.selectedTags.includes(tag) ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 ring-1 ring-indigo-200 dark:ring-indigo-500/30' : 'bg-zinc-200/50 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'}`}
                             >
                                 {tag}
@@ -368,7 +390,7 @@ export function Sidebar() {
             </div>
 
             {/* Notes list */}
-            <div className="flex-1 overflow-y-auto px-2 pb-4">
+            <div className="flex-1 overflow-y-auto px-2 pb-4" role="list" aria-label="Notes list">
                 {state.isLoading ? (
                     <div className="flex flex-col gap-2 px-4 mt-2">
                         {[...Array(4)].map((_, i) => (

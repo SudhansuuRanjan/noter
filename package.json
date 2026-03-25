@@ -17,6 +17,7 @@
   "author": "Sudhanshu Ranjan",
   "license": "MIT",
   "devDependencies": {
+    "@rollup/rollup-win32-x64-msvc": "^4.59.0",
     "@types/electron": "^1.4.38",
     "@types/node": "^20.11.20",
     "@types/react": "^18.2.57",

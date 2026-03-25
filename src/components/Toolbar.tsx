@@ -62,6 +62,7 @@ export function Toolbar() {
             <div className="flex items-center gap-3 min-w-0" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
                 <button
                     onClick={toggleSidebar}
+                    aria-label={state.isSidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
                     className={`p-1.5 rounded-md transition-colors ${state.isSidebarOpen ? 'text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800' : 'text-zinc-800 bg-zinc-200 dark:text-zinc-200 dark:bg-zinc-700'}`}
                     title="Toggle Sidebar"
                 >
@@ -87,6 +88,8 @@ export function Toolbar() {
                         <button
                             key={mode}
                             onClick={() => setViewMode(mode)}
+                            aria-pressed={state.viewMode === mode}
+                            aria-label={`Switch to ${label.toLowerCase()} view`}
                             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all duration-150 ${state.viewMode === mode
                                 ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm'
                                 : 'text-zinc-500 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
@@ -101,6 +104,9 @@ export function Toolbar() {
                 <div className="relative" ref={labelMenuRef}>
                     <button
                         onClick={() => setIsLabelMenuOpen(!isLabelMenuOpen)}
+                        aria-haspopup="menu"
+                        aria-expanded={isLabelMenuOpen}
+                        aria-label="Assign label to current note"
                         className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${activeLabel
                             ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700'
                             : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-300'
@@ -123,6 +129,7 @@ export function Toolbar() {
                             <div className="max-h-60 overflow-y-auto">
                                 <button
                                     onClick={() => { updateNoteLabel(activeNote.id, undefined); setIsLabelMenuOpen(false) }}
+                                    role="menuitem"
                                     className={`w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 ${!activeNote.labelId ? 'bg-zinc-50 dark:bg-zinc-800/30' : ''}`}
                                 >
                                     <div className="w-2.5 h-2.5 rounded-full bg-zinc-200 dark:bg-zinc-700" />
@@ -132,6 +139,8 @@ export function Toolbar() {
                                     <button
                                         key={label.id}
                                         onClick={() => { updateNoteLabel(activeNote.id, label.id); setIsLabelMenuOpen(false) }}
+                                        role="menuitemradio"
+                                        aria-checked={activeNote.labelId === label.id}
                                         className={`w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 ${activeNote.labelId === label.id ? 'bg-zinc-50 dark:bg-zinc-800/30 font-medium' : ''}`}
                                     >
                                         <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: label.color }} />
@@ -148,6 +157,7 @@ export function Toolbar() {
                 <button
                     onClick={() => saveVersionHistory()}
                     disabled={state.historySyncState === 'syncing' || state.historySyncState === 'synced'}
+                    aria-label="Save current note to version history"
                     className={`flex text-nowrap items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${state.historySyncState === 'synced'
                         ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 cursor-default'
                         : state.historySyncState === 'syncing'
@@ -164,6 +174,9 @@ export function Toolbar() {
                     <div className="relative" ref={linkMenuRef}>
                         <button
                             onClick={() => setIsLinkMenuOpen(!isLinkMenuOpen)}
+                            aria-haspopup="dialog"
+                            aria-expanded={isLinkMenuOpen}
+                            aria-label="Insert link to another note"
                             className={`p-2 rounded-lg transition-all duration-200 ${isLinkMenuOpen
                                 ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
                                 : 'text-zinc-400 hover:text-indigo-500 hover:bg-zinc-100 dark:hover:bg-zinc-800'
@@ -181,6 +194,7 @@ export function Toolbar() {
                                         <input
                                             type="text"
                                             autoFocus
+                                            aria-label="Search notes to insert link"
                                             placeholder="Search notes..."
                                             value={linkSearchQuery}
                                             onChange={(e) => setLinkSearchQuery(e.target.value)}
@@ -203,6 +217,7 @@ export function Toolbar() {
                                                     setIsLinkMenuOpen(false)
                                                     setTimeout(() => setLinkSearchQuery(''), 200)
                                                 }}
+                                                aria-label={`Insert link to ${note.title}`}
                                                 className="w-full text-left px-3 py-2 text-xs hover:bg-zinc-50 dark:hover:bg-zinc-800/50 flex flex-col gap-0.5 border-b border-zinc-100 dark:border-zinc-800/30 last:border-0"
                                             >
                                                 <span className="font-medium text-zinc-700 dark:text-zinc-300 truncate">{note.title}</span>
@@ -227,6 +242,7 @@ export function Toolbar() {
 
                 <button
                     onClick={() => togglePin(activeNote.id)}
+                    aria-label={activeNote.pinned ? 'Unpin current note' : 'Pin current note'}
                     className={`p-2 rounded-lg transition-all duration-200 ${activeNote.pinned
                         ? 'text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10'
                         : 'text-zinc-400 hover:text-indigo-500 hover:bg-zinc-100 dark:hover:bg-zinc-800'
@@ -238,6 +254,7 @@ export function Toolbar() {
 
                 <button
                     onClick={() => toggleStar(activeNote.id)}
+                    aria-label={activeNote.starred ? 'Unstar current note' : 'Star current note'}
                     className={`p-2 rounded-lg transition-all duration-200 ${activeNote.starred
                         ? 'text-amber-500 bg-amber-50 dark:bg-amber-400/10'
                         : 'text-zinc-400 hover:text-amber-500 hover:bg-zinc-100 dark:hover:bg-zinc-800'
@@ -249,6 +266,7 @@ export function Toolbar() {
 
                 <button
                     onClick={() => exportNote(activeNote.id, activeNote.title)}
+                    aria-label="Export current note"
                     className="p-2 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200"
                     title="Export note"
                 >
@@ -258,6 +276,7 @@ export function Toolbar() {
                 {state.viewMode === 'preview' && (
                     <button
                         onClick={() => exportPDF(activeNote.id, activeNote.title)}
+                        aria-label="Export current note as PDF"
                         className="p-2 rounded-lg text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all duration-200"
                         title="Export as PDF"
                     >
@@ -267,6 +286,7 @@ export function Toolbar() {
 
                 <button
                     onClick={() => window.electronAPI.openInNewWindow(activeNote.id)}
+                    aria-label="Open current note in a new window"
                     className="p-2 rounded-lg text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all duration-200"
                     title="Open in New Window"
                 >
@@ -276,6 +296,7 @@ export function Toolbar() {
                 {(state.viewMode === 'edit' || state.viewMode === 'split') && (
                     <button
                         onClick={() => window.dispatchEvent(new Event('open-ai-command'))}
+                        aria-label="Open AI assistant"
                         className="p-2 rounded-lg text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all duration-200"
                         title="AI Assistant"
                     >
@@ -285,6 +306,7 @@ export function Toolbar() {
 
                 <button
                     onClick={() => setShowHistory(true)}
+                    aria-label="Open revision history"
                     className="p-2 rounded-lg text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-all duration-200"
                     title="View Revision History"
                 >
@@ -295,6 +317,7 @@ export function Toolbar() {
 
                 <button
                     onClick={() => setDeleteConfirm(activeNote.id)}
+                    aria-label="Delete current note"
                     className="p-2 rounded-lg text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all duration-200"
                     title="Delete note"
                 >

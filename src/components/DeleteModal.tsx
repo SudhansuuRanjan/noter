@@ -3,10 +3,18 @@ import { createPortal } from 'react-dom'
 import { useNotes } from '../context/NotesContext'
 import { withViewTransition } from '../utils/transition'
 import { useHotkey } from '@tanstack/react-hotkeys'
+import { useEffect, useRef } from 'react'
 
 export function DeleteModal() {
     const { state, deleteNote, setDeleteConfirm, filteredNotes } = useNotes()
     const { deleteConfirmId } = state
+    const cancelButtonRef = useRef<HTMLButtonElement>(null)
+
+    useEffect(() => {
+        if (deleteConfirmId) {
+            cancelButtonRef.current?.focus()
+        }
+    }, [deleteConfirmId])
 
     useHotkey('Escape', () => {
         withViewTransition(() => setDeleteConfirm(null))
@@ -19,10 +27,15 @@ export function DeleteModal() {
 
     return createPortal(
         <div
+            role="presentation"
             className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-fade-in"
             onClick={() => withViewTransition(() => setDeleteConfirm(null))}
         >
             <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="delete-note-title"
+                aria-describedby="delete-note-description"
                 className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/60 rounded-2xl p-6 w-80 shadow-2xl animate-scale-in"
                 onClick={e => e.stopPropagation()}
             >
@@ -32,19 +45,20 @@ export function DeleteModal() {
                             <AlertTriangle size={18} className="text-red-500 dark:text-red-400" />
                         </div>
                         <div>
-                            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Delete Note</h3>
+                            <h3 id="delete-note-title" className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Delete Note</h3>
                             <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-0.5">This action is irreversible</p>
                         </div>
                     </div>
                     <button
                         onClick={() => withViewTransition(() => setDeleteConfirm(null))}
+                        aria-label="Close delete confirmation"
                         className="p-1 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                     >
                         <X size={15} />
                     </button>
                 </div>
 
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-5 leading-relaxed">
+                <p id="delete-note-description" className="text-sm text-zinc-500 dark:text-zinc-400 mb-5 leading-relaxed">
                     Are you sure you want to delete{' '}
                     <span className="text-zinc-900 dark:text-zinc-200 font-medium">"{note.title}"</span>?
                     The file will be permanently removed.
@@ -52,6 +66,7 @@ export function DeleteModal() {
 
                 <div className="flex gap-2">
                     <button
+                        ref={cancelButtonRef}
                         onClick={() => withViewTransition(() => setDeleteConfirm(null))}
                         className="flex-1 py-2 px-4 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-sm font-medium transition-all duration-200"
                     >

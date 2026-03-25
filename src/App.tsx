@@ -23,7 +23,7 @@ function SecondaryLayout() {
     }
 
     return (
-        <div className="h-screen w-screen flex flex-col overflow-hidden bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans">
+        <div className="h-screen w-screen flex flex-col overflow-hidden bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans" role="application" aria-label="Noter secondary preview window">
             <header
                 className="h-10 flex-shrink-0 flex items-center justify-center border-b border-zinc-100 dark:border-zinc-800/60 bg-zinc-50/50 dark:bg-zinc-900/50 backdrop-blur-sm px-4"
                 style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
@@ -34,7 +34,7 @@ function SecondaryLayout() {
                     <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 truncate max-w-[300px]">{activeNote.title}</span>
                 </div>
             </header>
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden" role="main" aria-label="Note preview">
                 <Preview />
             </div>
         </div>
@@ -110,7 +110,7 @@ function AppLayout() {
     const defaultSizePercent = minSizePercent
 
     return (
-        <div className="flex h-screen w-screen overflow-hidden bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans">
+        <div className="flex h-screen w-screen overflow-hidden bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans" role="application" aria-label="Noter note taking app">
             <PanelGroup direction="horizontal">
                 {state.isSidebarOpen && (
                     <Panel
@@ -122,7 +122,9 @@ function AppLayout() {
                         key="sidebar"
                         className="border-r border-zinc-200 dark:border-zinc-800/60 z-10"
                     >
-                        <Sidebar />
+                        <aside aria-label="Sidebar">
+                            <Sidebar />
+                        </aside>
                     </Panel>
                 )}
                 {state.isSidebarOpen && (
@@ -140,7 +142,7 @@ function AppLayout() {
                     className="flex flex-col min-w-0 h-full overflow-hidden bg-white dark:bg-zinc-950"
                 >
                     {activeNote ? (
-                        <div className="flex flex-col h-full relative">
+                        <main className="flex flex-col h-full relative" aria-label={`Editing note ${activeNote.title}`}>
                             <Toolbar />
                             <div className="flex-1 min-h-0 relative">
                                 {state.viewMode === 'split' ? (
@@ -159,9 +161,9 @@ function AppLayout() {
                                     <Preview />
                                 )}
                             </div>
-                        </div>
+                        </main>
                     ) : (
-                        <div className="flex-1 flex flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-950/50 relative overflow-hidden">
+                        <main className="flex-1 flex flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-950/50 relative overflow-hidden" aria-label="Welcome screen">
                             {/* Decorative background grid */}
                             <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
                             
@@ -188,6 +190,7 @@ function AppLayout() {
                                             const canOpen = await ensureHistorySynced()
                                             if (canOpen) createNote()
                                         }}
+                                        aria-label="Create a new note"
                                         className="group relative flex items-center justify-start gap-2 w-full py-3 bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600 text-white text-sm font-semibold rounded-xl shadow-lg active:scale-95 transition-all overflow-hidden"
                                     >
                                         <span className="relative pl-4 z-10 flex items-center gap-2">
@@ -204,6 +207,7 @@ function AppLayout() {
                                         onClick={() => {
                                             document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))
                                         }}
+                                        aria-label="Open command palette"
                                         className="group relative flex items-center justify-start gap-2 w-full py-3 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm font-semibold rounded-xl transition-all border border-zinc-200 dark:border-zinc-800 active:scale-95"
                                     >
                                         <span className="flex items-center gap-2 text-sm pl-4">
@@ -217,7 +221,7 @@ function AppLayout() {
                                     </button>
                                 </div>
                             </div>
-                        </div>
+                        </main>
                     )}
                 </Panel>
             </PanelGroup>

@@ -121,6 +121,31 @@
         caret-color: rgb(var(--theme-500));
     }
 
+    :focus-visible {
+        outline: 2px solid rgb(var(--theme-500));
+        outline-offset: 2px;
+    }
+
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible,
+    [role="button"]:focus-visible,
+    [tabindex]:focus-visible {
+        box-shadow: 0 0 0 3px rgb(var(--theme-500) / 0.2);
+        border-radius: 0.75rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+
     html,
     body,
     #root {
@@ -285,6 +310,18 @@
 /* Focus ring suppression on CodeMirror */
 .cm-editor.cm-focused {
     outline: none !important;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 /* Selection color */
