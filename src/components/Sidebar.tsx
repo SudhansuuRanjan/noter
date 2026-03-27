@@ -82,7 +82,7 @@ export function Sidebar() {
     const isMac = window?.electronAPI?.platform === 'darwin'
 
     return (
-        <div className="w-full h-full flex flex-col bg-zinc-50 dark:bg-zinc-900/50" role="navigation" aria-label="Notes sidebar">
+        <div className="w-full h-full min-h-0 flex flex-col bg-zinc-50 dark:bg-zinc-900/50" role="navigation" aria-label="Notes sidebar">
             {/* Header — traffic light space + drag region */}
             <div className={`${isMac ? 'pt-10' : 'pt-4'} pb-3 px-4`} style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
                 <div className="flex items-center justify-between mb-4">
@@ -390,7 +390,7 @@ export function Sidebar() {
             </div>
 
             {/* Notes list */}
-            <div className="flex-1 overflow-y-auto px-2 pb-4" role="list" aria-label="Notes list">
+            <div className="flex-1 min-h-0 overflow-y-auto px-2 pb-4" role="list" aria-label="Notes list">
                 {state.isLoading ? (
                     <div className="flex flex-col gap-2 px-4 mt-2">
                         {[...Array(4)].map((_, i) => (
@@ -409,7 +409,7 @@ export function Sidebar() {
                         </p>
                     </div>
                 ) : (
-                    <div className="animate-fade-in">
+                    <div className="animate-fade-in flex flex-col gap-1 w-full">
                         {filteredNotes.map(note => (
                             <NoteCard
                                 key={note.id}

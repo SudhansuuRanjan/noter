@@ -122,7 +122,7 @@ function AppLayout() {
                         key="sidebar"
                         className="border-r border-zinc-200 dark:border-zinc-800/60 z-10"
                     >
-                        <aside aria-label="Sidebar">
+                        <aside className="h-full min-h-0" aria-label="Sidebar">
                             <Sidebar />
                         </aside>
                     </Panel>
