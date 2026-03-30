@@ -47,6 +47,11 @@ export interface ElectronAPI {
     clearKey: () => Promise<boolean>
     aiChat: (options: { messages: any[], systemPrompt?: string, model?: string }) =>
         Promise<{ content?: string; usage?: any; error?: string }>
+    minimizeWindow: () => Promise<void>
+    toggleMaximizeWindow: () => Promise<boolean>
+    closeWindow: () => Promise<void>
+    isWindowMaximized: () => Promise<boolean>
+    onMaximizedChange: (callback: (isMaximized: boolean) => void) => () => void
     windowArgs: { mode: string; noteId?: string }
     platform: NodeJS.Platform
 }
@@ -91,6 +96,15 @@ const api: ElectronAPI = {
     updateSettings: (settings: any) => ipcRenderer.invoke('settings:update', settings),
     aiChat: (options: { messages: any[], systemPrompt?: string, model?: string }) =>
         ipcRenderer.invoke('ai:chat', options),
+    minimizeWindow: () => ipcRenderer.invoke('window:minimize'),
+    toggleMaximizeWindow: () => ipcRenderer.invoke('window:toggleMaximize'),
+    closeWindow: () => ipcRenderer.invoke('window:close'),
+    isWindowMaximized: () => ipcRenderer.invoke('window:isMaximized'),
+    onMaximizedChange: (callback: (isMaximized: boolean) => void) => {
+        const listener = (_event: unknown, isMaximized: boolean) => callback(isMaximized)
+        ipcRenderer.on('window:maximized-changed', listener)
+        return () => ipcRenderer.removeListener('window:maximized-changed', listener)
+    },
     windowArgs: getWindowArgs(),
     platform: process.platform
 }

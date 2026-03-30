@@ -19,6 +19,19 @@ export function CommandPalette() {
         })
     })
 
+    useEffect(() => {
+        const handleOpenCommandPalette = () => {
+            withViewTransition(() => {
+                setIsOpen(true)
+                setQuery('')
+            })
+        }
+
+        window.addEventListener('open-command-palette', handleOpenCommandPalette)
+
+        return () => window.removeEventListener('open-command-palette', handleOpenCommandPalette)
+    }, [])
+
     useHotkey('Escape', () => {
         withViewTransition(() => setIsOpen(false))
     }, { enabled: isOpen })
@@ -106,9 +119,9 @@ export function CommandPalette() {
                         value={query}
                         onChange={e => setQuery(e.target.value)}
                         placeholder="Search notes or type a command..."
-                        className="flex-1 bg-transparent border-none outline-none text-zinc-900 dark:text-zinc-100 text-[15px] placeholder-zinc-400"
+                        className="flex-1 p-1.5 px-2 bg-transparent border-none outline-none text-sm text-zinc-900 dark:text-zinc-100 text-[15px] placeholder-zinc-400"
                     />
-                    <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-medium text-zinc-400 bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-700">ESC</kbd>
+                    <kbd className="hidden ml-2 sm:inline-block px-1.5 py-0.5 text-[10px] font-medium text-zinc-400 bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-700">ESC</kbd>
                 </div>
 
                 <div className="max-h-[60vh] overflow-y-auto p-2">

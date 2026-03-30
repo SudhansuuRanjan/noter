@@ -57,14 +57,19 @@ function writeLabels(labels: Array<{ id: string; name: string; color: string }>)
 function createWindow(noteId?: string): BrowserWindow {
 
     const isSecondary = !!noteId
+    const isMac = process.platform === 'darwin'
+    const isWindows = process.platform === 'win32'
     const win = new BrowserWindow({
         width: isSecondary ? 800 : 1280,
         height: isSecondary ? 600 : 800,
         minWidth: isSecondary ? 400 : 1000,
         minHeight: isSecondary ? 300 : 600,
         backgroundColor: '#0e0e12',
-        titleBarStyle: 'hiddenInset',
-        trafficLightPosition: { x: 16, y: 16 },
+        frame: !isWindows,
+        ...(isMac ? {
+            titleBarStyle: 'hiddenInset' as const,
+            trafficLightPosition: { x: 16, y: 16 }
+        } : {}),
         autoHideMenuBar: true,
         webPreferences: {
             preload: join(__dirname, '../preload/preload.js'),
@@ -91,6 +96,17 @@ function createWindow(noteId?: string): BrowserWindow {
     win.once('ready-to-show', () => {
         win.show()
     })
+
+    const emitWindowState = () => {
+        if (!win.isDestroyed()) {
+            win.webContents.send('window:maximized-changed', win.isMaximized())
+        }
+    }
+
+    win.on('maximize', emitWindowState)
+    win.on('unmaximize', emitWindowState)
+    win.on('enter-full-screen', emitWindowState)
+    win.on('leave-full-screen', emitWindowState)
 
     const url = process.env['ELECTRON_RENDERER_URL']
     if (url) {
@@ -139,6 +155,34 @@ app.on('window-all-closed', () => {
 // IPC: Open In New Window
 ipcMain.handle('notes:openInNewWindow', (_event, noteId: string) => {
     createWindow(noteId)
+})
+
+ipcMain.handle('window:minimize', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    win?.minimize()
+})
+
+ipcMain.handle('window:toggleMaximize', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (!win) return false
+
+    if (win.isMaximized()) {
+        win.unmaximize()
+    } else {
+        win.maximize()
+    }
+
+    return win.isMaximized()
+})
+
+ipcMain.handle('window:close', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    win?.close()
+})
+
+ipcMain.handle('window:isMaximized', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    return win?.isMaximized() ?? false
 })
 
 // IPC: List all notes

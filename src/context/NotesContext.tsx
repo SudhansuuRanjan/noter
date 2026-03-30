@@ -606,7 +606,7 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
             // Clean up pending ref for the note we're leaving
             delete pendingNoteContentRef.current[currentId]
         }
-        withViewTransition(() => dispatch({ type: 'SET_ACTIVE', id }))
+        dispatch({ type: 'SET_ACTIVE', id })
     }, [state.activeNoteId, state.notes])
 
     const toggleSidebar = useCallback(() => {

@@ -80,16 +80,18 @@ export function Sidebar() {
     const allTags = Array.from(new Set(state.notes.flatMap(n => n.tags || []))).sort()
 
     const isMac = window?.electronAPI?.platform === 'darwin'
+    const hasCustomTitleBar = (window?.electronAPI?.platform === 'win32' || window?.electronAPI?.platform === 'darwin')
+    const hasTopBarSearch = hasCustomTitleBar && window?.electronAPI?.windowArgs?.mode === 'main'
 
     return (
         <div className="w-full h-full min-h-0 flex flex-col bg-zinc-50 dark:bg-zinc-900/50" role="navigation" aria-label="Notes sidebar">
             {/* Header — traffic light space + drag region */}
-            <div className={`${isMac ? 'pt-10' : 'pt-4'} pb-3 px-4`} style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
+            <div className={`${hasCustomTitleBar ? 'pt-4' : isMac ? 'pt-10' : 'pt-4'} pb-3 px-4`} style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-                        <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-600/20 border border-indigo-200 dark:border-indigo-500/30 flex items-center justify-center">
+                        {/* <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-600/20 border border-indigo-200 dark:border-indigo-500/30 flex items-center justify-center">
                             <FileText size={14} className="text-indigo-600 dark:text-indigo-400" />
-                        </div>
+                        </div> */}
                         <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 tracking-wide">Noter <span className="text-xs text-zinc-400 dark:text-zinc-500">v{state.version}</span></div>
                     </div>
                     <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
@@ -162,7 +164,7 @@ export function Sidebar() {
             </div>
 
             {/* Search */}
-            <div className="px-4 mb-3">
+            {!hasTopBarSearch && <div className="px-4 mb-3">
                 <div className="relative">
                     <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" />
                     <input
@@ -180,7 +182,7 @@ export function Sidebar() {
                         </kbd>
                     </div>
                 </div>
-            </div>
+            </div>}
 
             {/* Filter tabs + Sort */}
             <div className="px-4 mb-3 flex items-center justify-between">

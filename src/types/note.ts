@@ -50,6 +50,11 @@ export interface ElectronAPI {
     updateSettings: (settings: any) => Promise<boolean>
     aiChat: (options: { messages: any[], systemPrompt?: string, model?: string }) =>
         Promise<{ content?: string; usage?: any; error?: string }>
+    minimizeWindow: () => Promise<void>
+    toggleMaximizeWindow: () => Promise<boolean>
+    closeWindow: () => Promise<void>
+    isWindowMaximized: () => Promise<boolean>
+    onMaximizedChange: (callback: (isMaximized: boolean) => void) => () => void
     windowArgs: { mode: string; noteId?: string }
     platform: string
 }

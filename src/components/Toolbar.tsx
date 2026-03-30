@@ -51,15 +51,16 @@ export function Toolbar() {
     if (!activeNote) return null
 
     const isMac = window?.electronAPI?.platform === 'darwin'
-    const paddingLeftClass = (!state.isSidebarOpen && isMac) ? 'pl-20' : 'pl-4'
+    const hasCustomTitleBar = window?.electronAPI?.platform === 'win32' || isMac
+    const paddingLeftClass = (!state.isSidebarOpen && isMac && !hasCustomTitleBar) ? 'pl-20' : 'pl-4'
     const zenClasses = state.isZenMode 
         ? "absolute top-0 left-0 right-0 opacity-0 hover:opacity-100 bg-white/95 dark:bg-zinc-950/95 transition-opacity duration-300 z-50 border-b border-zinc-200 dark:border-zinc-800/60" 
         : "relative bg-white/80 dark:bg-zinc-900/40 backdrop-blur-sm z-30 border-b border-zinc-200 dark:border-zinc-800/60"
 
     return (
-        <div className={`h-11 gap-1 flex-shrink-0 flex items-center justify-between pr-4 transition-all duration-200 ${paddingLeftClass} ${zenClasses}`} style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
+        <div className={`h-11 min-w-0 gap-1 flex-shrink-0 flex items-center justify-between overflow-hidden pr-4 transition-all duration-200 ${paddingLeftClass} ${zenClasses}`} style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
             {/* Left: Note title + save indicator */}
-            <div className="flex items-center gap-3 min-w-0" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+            <div className="flex items-center gap-3 min-w-0 flex-shrink" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
                 <button
                     onClick={toggleSidebar}
                     aria-label={state.isSidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
@@ -81,7 +82,7 @@ export function Toolbar() {
             </div>
 
             {/* Right: Actions */}
-            <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+            <div className="flex min-w-0 items-center justify-end gap-1 overflow-hidden" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
                 {/* Center: View mode toggle */}
                 <div className="flex items-center gap-0.5 bg-zinc-100 dark:bg-zinc-800/60 rounded-lg p-0.5 border border-zinc-200 dark:border-zinc-700/40" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
                     {viewModes.map(({ mode, icon, label }) => (
