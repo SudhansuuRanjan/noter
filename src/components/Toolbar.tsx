@@ -58,9 +58,9 @@ export function Toolbar() {
         : "relative bg-white/80 dark:bg-zinc-900/40 backdrop-blur-sm z-30 border-b border-zinc-200 dark:border-zinc-800/60"
 
     return (
-        <div className={`h-11 min-w-0 gap-1 flex-shrink-0 flex items-center justify-between overflow-hidden pr-4 transition-all duration-200 ${paddingLeftClass} ${zenClasses}`} style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
+        <div className={`h-11 min-w-0 gap-2 flex-shrink-0 flex items-center justify-between overflow-hidden pr-4 transition-all duration-200 ${paddingLeftClass} ${zenClasses}`} style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
             {/* Left: Note title + save indicator */}
-            <div className="flex items-center gap-3 min-w-0 flex-shrink" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+            <div className="flex flex-1 min-w-0 items-center gap-3 overflow-hidden" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
                 <button
                     onClick={toggleSidebar}
                     aria-label={state.isSidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
@@ -70,11 +70,13 @@ export function Toolbar() {
                     <PanelLeft size={16} />
                 </button>
                 <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-700/60" />
-                <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-200 truncate max-w-xs">
-                    {activeNote.title}
-                </h2>
+                <div className="min-w-0 flex-1 overflow-hidden">
+                    <h2 className="truncate text-sm font-medium text-zinc-700 dark:text-zinc-200">
+                        {activeNote.title}
+                    </h2>
+                </div>
                 {state.isSaving && (
-                    <div className="flex items-center gap-1.5 text-zinc-400 dark:text-zinc-500 text-xs">
+                    <div className="hidden sm:flex flex-shrink-0 items-center gap-1.5 text-zinc-400 dark:text-zinc-500 text-xs">
                         <Save size={11} className="animate-pulse" />
                         <span>Saving…</span>
                     </div>
@@ -82,7 +84,7 @@ export function Toolbar() {
             </div>
 
             {/* Right: Actions */}
-            <div className="flex min-w-0 items-center justify-end gap-1 overflow-hidden" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+            <div className="flex flex-shrink-0 items-center justify-end gap-1 pl-2" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
                 {/* Center: View mode toggle */}
                 <div className="flex items-center gap-0.5 bg-zinc-100 dark:bg-zinc-800/60 rounded-lg p-0.5 border border-zinc-200 dark:border-zinc-700/40" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
                     {viewModes.map(({ mode, icon, label }) => (
