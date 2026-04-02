@@ -61,14 +61,13 @@ export function Editor() {
 
     const activeNoteId = activeNote?.id
     const debounceRef = useRef<NodeJS.Timeout | null>(null)
-    // Capture the initial content once per note load. This prevents
-    // stale state updates from pushing a new value into CodeMirror
-    // and resetting the cursor position.
-    const initialContentRef = useRef<string>('')
-    useEffect(() => {
+    const initialContentRef = useRef('')
+    const initialContentNoteIdRef = useRef<string | null>(null)
+
+    if (initialContentNoteIdRef.current !== activeNoteId) {
         initialContentRef.current = activeNote?.content || ''
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [activeNoteId])
+        initialContentNoteIdRef.current = activeNoteId ?? null
+    }
 
     const handleChange = useCallback((value: string) => {
         if (!activeNoteId) return
