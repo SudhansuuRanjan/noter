@@ -42,6 +42,29 @@ export const AICommand: React.FC<AICommandProps> = ({
         }
     }, [isOpen])
 
+    useEffect(() => {
+        if (isOpen) {
+            setPrompt(initialPrompt)
+            setResult('')
+            setError(null)
+        }
+    }, [isOpen, initialPrompt, selectionText])
+
+    const buildPromptWithContext = (userPrompt: string) => {
+        const trimmedPrompt = userPrompt.trim()
+        const context = selectionText || activeNote?.content || ''
+
+        if (!context) {
+            return trimmedPrompt
+        }
+
+        if (selectionText) {
+            return `Use the selected text below as context for the request.\n\nSelected text:\n${context}\n\nRequest:\n${trimmedPrompt}`
+        }
+
+        return `Use the current note below as context for the request.\n\nCurrent note:\n${context}\n\nRequest:\n${trimmedPrompt}`
+    }
+
     const handleRunAI = async (actionPrompt: string, customSystemPrompt?: string) => {
         setIsLoading(true)
         setError(null)
@@ -176,7 +199,7 @@ export const AICommand: React.FC<AICommandProps> = ({
                                     className="w-full h-24 p-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none transition-all disabled:opacity-50"
                                 />
                                 <button
-                                    onClick={() => handleRunAI(prompt)}
+                                    onClick={() => handleRunAI(buildPromptWithContext(prompt))}
                                     disabled={isLoading || !prompt.trim() || !hasKey}
                                     className="absolute bottom-3 right-3 p-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg shadow transition-all group"
                                 >
