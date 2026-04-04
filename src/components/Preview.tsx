@@ -31,7 +31,7 @@ const CopyButton = ({ text }: { text: string }) => {
     )
 }
 
-const MermaidRenderer = ({ content }: { content: string }) => {
+const MermaidRenderer = ({ content, theme }: { content: string; theme: string }) => {
     const containerRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -43,11 +43,12 @@ const MermaidRenderer = ({ content }: { content: string }) => {
                     const m = (await import('mermaid')).default
                     m.initialize({
                         startOnLoad: false,
-                        theme: 'default',
+                        theme: theme === 'dark' ? 'dark' : 'default',
                         securityLevel: 'strict',
                         fontFamily: 'inherit'
                     })
                     if (isMounted) {
+                        containerRef.current.innerHTML = content
                         containerRef.current.removeAttribute('data-processed')
                         await m.run({ nodes: [containerRef.current] })
                     }
@@ -58,7 +59,7 @@ const MermaidRenderer = ({ content }: { content: string }) => {
         }
         renderDiagram()
         return () => { isMounted = false }
-    }, [content])
+    }, [content, theme])
 
     return (
         <div ref={containerRef} className="mermaid flex justify-center my-4">
@@ -200,7 +201,7 @@ export function Preview() {
                                 const isInline = !match
                                 const content = String(children).replace(/\n$/, '')
                                 if (!isInline && match && match[1] === 'mermaid') {
-                                    return <MermaidRenderer content={content} />
+                                    return <MermaidRenderer content={content} theme={state.theme} />
                                 }
                                 return (
                                     <code className={className} {...props}>

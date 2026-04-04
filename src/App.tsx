@@ -9,6 +9,9 @@ import { CommandPalette } from './components/CommandPalette'
 import { UpdateBanner } from './components/UpdateBanner'
 import { TaskDashboard } from './components/TaskDashboard'
 import { WindowTitleBar } from './components/WindowTitleBar'
+import { HelpModal } from './components/HelpModal'
+import { AISettings } from './components/AISettings'
+import { withViewTransition } from './utils/transition'
 import { NotesProvider, useNotes } from './context/NotesContext'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 
@@ -112,15 +115,22 @@ function WelcomeScreen({ createNote, ensureHistorySynced }: { createNote: () => 
 
 function AppLayout() {
     const { state, activeNote, createNote, ensureHistorySynced, toggleZen } = useNotes()
-    const [windowWidth, setWindowWidth] = useState(window.innerWidth)
     const [isTaskDashboardOpen, setIsTaskDashboardOpen] = useState(false)
+    const [isHelpOpen, setIsHelpOpen] = useState(false)
+    const [isAISettingsOpen, setIsAISettingsOpen] = useState(false)
     const hasCustomTitleBar = window.electronAPI.platform === 'win32' || window.electronAPI.platform === 'darwin'
 
-    useEffect(() => {
-        const handleResize = () => setWindowWidth(window.innerWidth)
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
+    // Compute sidebar sizes once on mount from pixel targets — never recalculate on resize
+    const [sidebarSizes] = useState(() => {
+        const w = window.innerWidth
+        const minPx = 300   // Hard minimum sidebar width in pixels
+        const defaultPct = (minPx / w) * 100
+        const minPct = (minPx / w) * 100
+        return {
+            defaultSize: Math.max(minPct, Math.min(25, defaultPct)),
+            minSize: minPct,
+        }
+    })
 
     useEffect(() => {
         const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -143,13 +153,19 @@ function AppLayout() {
         }
 
         const handleOpenTasks = () => setIsTaskDashboardOpen(true)
+        const handleOpenSettings = () => withViewTransition(() => setIsAISettingsOpen(true))
+        const handleOpenHelp = () => withViewTransition(() => setIsHelpOpen(true))
 
         window.addEventListener('keydown', handleGlobalKeyDown)
         window.addEventListener('open-tasks', handleOpenTasks)
+        window.addEventListener('open-settings', handleOpenSettings)
+        window.addEventListener('open-help', handleOpenHelp)
 
         return () => {
             window.removeEventListener('keydown', handleGlobalKeyDown)
             window.removeEventListener('open-tasks', handleOpenTasks)
+            window.removeEventListener('open-settings', handleOpenSettings)
+            window.removeEventListener('open-help', handleOpenHelp)
         }
     }, [createNote, ensureHistorySynced, toggleZen])
 
@@ -159,14 +175,8 @@ function AppLayout() {
         return <SecondaryLayout />
     }
 
-    const isSmallScreen = windowWidth < 768
-    const targetWidth = isSmallScreen ? 240 : 320
-    const calculatedPercent = (targetWidth / windowWidth) * 100
-    const minSizePercent = isSmallScreen
-        ? Math.min(100, calculatedPercent)
-        : Math.max(17, Math.min(30, calculatedPercent))
-    const maxSizePercent = isSmallScreen ? 100 : 35
-    const defaultSizePercent = minSizePercent
+    // Fixed max constraint
+    const maxSizePercent = 35
 
     return (
         <div className="flex h-full w-full min-h-0 min-w-0 overflow-hidden bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans" role="application" aria-label="Noter note taking app">
@@ -176,13 +186,14 @@ function AppLayout() {
                     <PanelGroup direction="horizontal">
                         {state.isSidebarOpen && (
                             <Panel
-                                defaultSize={defaultSizePercent}
-                                minSize={minSizePercent}
+                                defaultSize={sidebarSizes.defaultSize}
+                                minSize={sidebarSizes.minSize}
                                 maxSize={maxSizePercent}
                                 order={1}
                                 id="sidebar-panel"
                                 key="sidebar"
                                 className="border-r border-zinc-200 dark:border-zinc-800/60 z-10"
+                                style={{ minWidth: 330 }}
                             >
                                 <aside className="h-full min-h-0" aria-label="Sidebar">
                                     <Sidebar />
@@ -235,6 +246,8 @@ function AppLayout() {
             <DeleteModal />
             <UpdateBanner />
             <TaskDashboard isOpen={isTaskDashboardOpen} onClose={() => setIsTaskDashboardOpen(false)} />
+            <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+            <AISettings isOpen={isAISettingsOpen} onClose={() => setIsAISettingsOpen(false)} />
         </div>
     )
 }

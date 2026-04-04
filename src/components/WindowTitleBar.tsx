@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { FileText, Minus, PanelLeft, Search, Square, Copy, X } from 'lucide-react'
+import { FileText, Minus, PanelLeft, Search, Square, Copy, X, Settings, HelpCircle } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
+import { ThemeToggle } from './ThemeToggle'
 
 interface WindowTitleBarProps {
     title?: string
@@ -38,23 +39,10 @@ export function WindowTitleBar({ title, showSearch = false }: WindowTitleBarProp
             style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
         >
             <div className={`flex items-center gap-2 min-w-0 max-w-[240px] ${isMac ? 'pl-20' : ''}`}>
-                {showSearch && isWindows && (
-                    <button
-                        onClick={toggleSidebar}
-                        aria-label={state.isSidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
-                        className="p-2 rounded-lg text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-200/70 dark:hover:bg-zinc-800 transition-colors"
-                        style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-                    >
-                        <PanelLeft size={16} />
-                    </button>
-                )}
-                <div className="size-7 rounded-lg bg-indigo-100 dark:bg-indigo-500/15 border border-indigo-200 dark:border-indigo-500/20 flex items-center justify-center">
-                    <FileText size={15} className="text-indigo-600 dark:text-indigo-300" />
+                <div className="flex items-center gap-2" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+                    <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 tracking-wide">Noter <span className="text-xs text-zinc-400 dark:text-zinc-500">v{state.version}</span></div>
                 </div>
                 <div className="min-w-0 overflow-hidden">
-                    <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">
-                        {showSearch ? 'Noter' : (title || 'Noter')}
-                    </div>
                     {!showSearch && (
                         <div className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
                             Secondary window
@@ -84,33 +72,52 @@ export function WindowTitleBar({ title, showSearch = false }: WindowTitleBarProp
                 <div className="min-w-0 w-full" />
             )}
 
-            {isWindows ? (
-                <div className="flex items-center flex-shrink-0 -mr-2" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+            <div className="flex items-center" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+                <div className="flex items-center gap-1 mr-1">
+                    <ThemeToggle />
                     <button
-                        onClick={() => window.electronAPI.minimizeWindow()}
-                        aria-label="Minimize window"
-                        className="h-10 w-12 flex items-center justify-center text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-200/70 dark:hover:bg-zinc-800 transition-colors"
+                        onClick={() => window.dispatchEvent(new Event('open-settings'))}
+                        aria-label="Open app settings"
+                        className="p-2 rounded-lg text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200"
+                        title="AI Settings"
                     >
-                        <Minus size={15} />
+                        <Settings size={14} />
                     </button>
                     <button
-                        onClick={async () => setIsMaximized(await window.electronAPI.toggleMaximizeWindow())}
-                        aria-label={isMaximized ? 'Restore window' : 'Maximize window'}
-                        className="h-10 w-12 flex items-center justify-center text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-200/70 dark:hover:bg-zinc-800 transition-colors"
+                        onClick={() => window.dispatchEvent(new Event('open-help'))}
+                        aria-label="Open help guide"
+                        className="p-2 rounded-lg text-amber-500 hover:text-amber-600 dark:text-amber-400 dark:hover:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all duration-200"
+                        title="Help Guide"
                     >
-                        {isMaximized ? <Copy size={14} /> : <Square size={13} />}
-                    </button>
-                    <button
-                        onClick={() => window.electronAPI.closeWindow()}
-                        aria-label="Close window"
-                        className="h-10 w-12 flex items-center justify-center text-zinc-500 hover:text-white dark:text-zinc-400 hover:bg-red-500 transition-colors"
-                    >
-                        <X size={15} />
+                        <HelpCircle size={15} />
                     </button>
                 </div>
-            ) : (
-                <div className="w-12 flex-shrink-0" />
-            )}
+                {isWindows ? (
+                    <div className="flex items-center flex-shrink-0 -mr-2">
+                        <button
+                            onClick={() => window.electronAPI.minimizeWindow()}
+                            aria-label="Minimize window"
+                            className="h-10 w-12 flex items-center justify-center text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-200/70 dark:hover:bg-zinc-800 transition-colors"
+                        >
+                            <Minus size={15} />
+                        </button>
+                        <button
+                            onClick={async () => setIsMaximized(await window.electronAPI.toggleMaximizeWindow())}
+                            aria-label={isMaximized ? 'Restore window' : 'Maximize window'}
+                            className="h-10 w-12 flex items-center justify-center text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-200/70 dark:hover:bg-zinc-800 transition-colors"
+                        >
+                            {isMaximized ? <Copy size={14} /> : <Square size={13} />}
+                        </button>
+                        <button
+                            onClick={() => window.electronAPI.closeWindow()}
+                            aria-label="Close window"
+                            className="h-10 w-12 flex items-center justify-center text-zinc-500 hover:text-white dark:text-zinc-400 hover:bg-red-500 transition-colors"
+                        >
+                            <X size={15} />
+                        </button>
+                    </div>
+                ) : null}
+            </div>
         </div>
     )
 }

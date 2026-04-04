@@ -1,12 +1,8 @@
-import React, { useState } from 'react'
-import { Search, Plus, Star, FileText, X, ChevronRight, ChevronDown, Edit2, Check, Calendar, HelpCircle, ArrowUpDown, SortAsc, SortDesc, Sparkles, Settings, FileEdit, CheckSquare } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { Search, Plus, Star, FileText, X, ChevronRight, ChevronDown, Edit2, Check, Calendar, ArrowUpDown, SortAsc, SortDesc, Sparkles, FileEdit, CheckSquare } from 'lucide-react'
 import { useNotes } from '../context/NotesContext'
 import { NoteCard } from './NoteCard'
-import { withViewTransition } from '../utils/transition'
-import { ThemeToggle } from './ThemeToggle'
-import { HelpModal } from './HelpModal'
-import { AISettings } from './AISettings'
-import { useEffect } from 'react'
+
 
 export function Sidebar() {
     const {
@@ -30,8 +26,6 @@ export function Sidebar() {
 
     const [isLabelsExpanded, setIsLabelsExpanded] = useState(false)
     const [isTagsExpanded, setIsTagsExpanded] = useState(false)
-    const [isHelpOpen, setIsHelpOpen] = useState(false)
-    const [isAISettingsOpen, setIsAISettingsOpen] = useState(false)
     const [isCreatingLabel, setIsCreatingLabel] = useState(false)
     const [newLabelName, setNewLabelName] = useState('')
     const [newLabelColor, setNewLabelColor] = useState('#3b82f6') // default blue
@@ -40,18 +34,6 @@ export function Sidebar() {
     const [editLabelName, setEditLabelName] = useState('')
     const [editLabelColor, setEditLabelColor] = useState('#3b82f6')
 
-    useEffect(() => {
-        const handleOpenSettings = () => withViewTransition(() => setIsAISettingsOpen(true))
-        const handleOpenHelp = () => withViewTransition(() => setIsHelpOpen(true))
-
-        window.addEventListener('open-settings', handleOpenSettings)
-        window.addEventListener('open-help', handleOpenHelp)
-
-        return () => {
-            window.removeEventListener('open-settings', handleOpenSettings)
-            window.removeEventListener('open-help', handleOpenHelp)
-        }
-    }, [])
 
     const handleCreateLabel = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -86,35 +68,7 @@ export function Sidebar() {
     return (
         <div className="w-full h-full min-h-0 flex flex-col bg-zinc-50 dark:bg-zinc-900/50" role="navigation" aria-label="Notes sidebar">
             {/* Header — traffic light space + drag region */}
-            <div className={`${hasCustomTitleBar ? 'pt-4' : isMac ? 'pt-10' : 'pt-4'} pb-3 px-4`} style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-                        {/* <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-600/20 border border-indigo-200 dark:border-indigo-500/30 flex items-center justify-center">
-                            <FileText size={14} className="text-indigo-600 dark:text-indigo-400" />
-                        </div> */}
-                        <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 tracking-wide">Noter <span className="text-xs text-zinc-400 dark:text-zinc-500">v{state.version}</span></div>
-                    </div>
-                    <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-                        <ThemeToggle />
-                        <button
-                            onClick={() => withViewTransition(() => setIsAISettingsOpen(true))}
-                            aria-label="Open app settings"
-                            className="p-2 rounded-lg text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all duration-200"
-                            title="AI Settings"
-                        >
-                            <Settings size={14} />
-                        </button>
-                        <button
-                            onClick={() => withViewTransition(() => setIsHelpOpen(true))}
-                            aria-label="Open help guide"
-                            className="p-2 rounded-lg text-amber-500 hover:text-amber-600 dark:text-amber-400 dark:hover:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all duration-200"
-                            title="Help Guide"
-                        >
-                            <HelpCircle size={15} />
-                        </button>
-                    </div>
-                </div>
-
+            <div className="pt-4 pb-3 px-4" style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}>
                 {/* New Note + Daily Note + Import */}
                 <div className="flex gap-2" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
                     <button
@@ -422,9 +376,6 @@ export function Sidebar() {
                     </div>
                 )}
             </div>
-
-            <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
-            <AISettings isOpen={isAISettingsOpen} onClose={() => setIsAISettingsOpen(false)} />
         </div>
     )
 }
