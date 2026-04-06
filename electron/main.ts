@@ -12,6 +12,35 @@ const LABELS_FILE = join(NOTES_DIR, '.labels.json')
 const ATTACHMENTS_DIR = join(NOTES_DIR, 'attachments')
 const HISTORY_DIR = join(NOTES_DIR, '.history')
 const SETTINGS_FILE = join(NOTES_DIR, '.settings.json')
+let mainWindow: BrowserWindow | null = null
+const secondaryWindowIds = new Set<number>()
+
+const gotSingleInstanceLock = app.requestSingleInstanceLock()
+
+if (!gotSingleInstanceLock) {
+    app.quit()
+}
+
+function focusMainWindow() {
+    const win = mainWindow && !mainWindow.isDestroyed()
+        ? mainWindow
+        : BrowserWindow.getAllWindows().find(window => !window.isDestroyed() && !secondaryWindowIds.has(window.id))
+
+    if (!win) {
+        createWindow()
+        return
+    }
+
+    if (win.isMinimized()) {
+        win.restore()
+    }
+
+    if (!win.isVisible()) {
+        win.show()
+    }
+
+    win.focus()
+}
 
 // Ensure notes directory exists
 function ensureNotesDir() {
@@ -85,6 +114,20 @@ function createWindow(noteId?: string): BrowserWindow {
         show: false
     })
 
+    if (!isSecondary) {
+        mainWindow = win
+        win.on('closed', () => {
+            if (mainWindow === win) {
+                mainWindow = null
+            }
+        })
+    } else {
+        secondaryWindowIds.add(win.id)
+        win.on('closed', () => {
+            secondaryWindowIds.delete(win.id)
+        })
+    }
+
     win.webContents.setWindowOpenHandler(({ url }) => {
         if (url.startsWith('http') || url.startsWith('https')) {
             shell.openExternal(url)
@@ -93,9 +136,18 @@ function createWindow(noteId?: string): BrowserWindow {
         return { action: 'allow' }
     })
 
-    win.once('ready-to-show', () => {
+    let hasShownWindow = false
+    const showWindow = () => {
+        if (hasShownWindow || win.isDestroyed()) return
+        hasShownWindow = true
         win.show()
-    })
+    }
+
+    const showFallbackTimer = setTimeout(showWindow, 1200)
+
+    win.once('ready-to-show', showWindow)
+    win.once('show', () => clearTimeout(showFallbackTimer))
+    win.once('closed', () => clearTimeout(showFallbackTimer))
 
     const emitWindowState = () => {
         if (!win.isDestroyed()) {
@@ -118,33 +170,39 @@ function createWindow(noteId?: string): BrowserWindow {
     return win
 }
 
-app.whenReady().then(() => {
-    ensureNotesDir()
-
-    protocol.handle('noter', (request) => {
-        const urlRequest = request.url.replace('noter://', '')
-        if (urlRequest.startsWith('attachments/')) {
-            const fileName = urlRequest.replace('attachments/', '')
-            const filePath = join(ATTACHMENTS_DIR, fileName)
-            return net.fetch('file://' + filePath)
-        }
-        if (urlRequest.startsWith('local/')) {
-            const filePath = decodeURIComponent(urlRequest.replace('local/', ''))
-            return net.fetch('file://' + filePath)
-        }
-        return new Response('Not found', { status: 404 })
-    })
-
-    createWindow()
-    setupAutoUpdater()
-
-    app.on('activate', function () {
-        if (BrowserWindow.getAllWindows().filter(w => !w.isDestroyed()).length === 0) {
-            createWindow()
-            setupAutoUpdater()
-        }
-    })
+app.on('second-instance', () => {
+    focusMainWindow()
 })
+
+if (gotSingleInstanceLock) {
+    app.whenReady().then(() => {
+        ensureNotesDir()
+
+        protocol.handle('noter', (request) => {
+            const urlRequest = request.url.replace('noter://', '')
+            if (urlRequest.startsWith('attachments/')) {
+                const fileName = urlRequest.replace('attachments/', '')
+                const filePath = join(ATTACHMENTS_DIR, fileName)
+                return net.fetch('file://' + filePath)
+            }
+            if (urlRequest.startsWith('local/')) {
+                const filePath = decodeURIComponent(urlRequest.replace('local/', ''))
+                return net.fetch('file://' + filePath)
+            }
+            return new Response('Not found', { status: 404 })
+        })
+
+        createWindow()
+        setupAutoUpdater()
+
+        app.on('activate', function () {
+            if (BrowserWindow.getAllWindows().filter(w => !w.isDestroyed()).length === 0) {
+                createWindow()
+                setupAutoUpdater()
+            }
+        })
+    })
+}
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
